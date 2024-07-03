@@ -1,0 +1,9 @@
+# Ignore Python egg-info and pyc files
+*.pyc
+*.egg-info/
+checkpoints/
+outputs/
+nohup.out
+data/
+gradio-logs/
+*.log
