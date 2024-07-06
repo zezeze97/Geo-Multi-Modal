@@ -14,7 +14,7 @@ mkdir -p checkpoints/checkpoints-$MODEL_TYPE/$OUTPUT_DIR
 #  --vision_tower_pretrained_local_path checkpoints/checkpoints-qwen2/bunny-qwen2-caption-formalgeo-construction-cdl-and-image_cdl-0.5B-merged \
 # export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True 
 deepspeed --include=localhost:0,1,2,3,4,5,6,7 --master_port 25679 bunny/train/train.py \
-    --lora_enable True --lora_r 128 --lora_alpha 256 --mm_projector_lr 2e-5 \
+    --lora_enable True --lora_r 128 --lora_alpha 256 --mm_projector_lr 1e-5 \
     --deepspeed ./script/deepspeed/zero3.json \
     --model_name_or_path 01-ai/Yi-1.5-9B-Chat \
     --model_type $MODEL_TYPE \
@@ -23,8 +23,8 @@ deepspeed --include=localhost:0,1,2,3,4,5,6,7 --master_port 25679 bunny/train/tr
     --image_folder data \
     --customized_aug True \
     --vision_tower google/siglip-so400m-patch14-384 \
-    --vision_tower_pretrained_local_path checkpoints/checkpoints-qwen2/bunny-lora-qwen2-qa-FormalGeoV2Aug10Times_calibrate_structure_only-sft2/merged \
-    --freeze_vision_tower False \
+    --vision_tower_pretrained_local_path checkpoints/checkpoints-qwen2/bunny-lora-qwen2-qa-FormalGeoV2Aug3Times_calibrate_v1v2_structure_only-sft2/merged \
+    --freeze_vision_tower True \
     --tune_vision_tower False \
     --mm_projector_type mlp2x_gelu \
     --image_aspect_ratio pad \
@@ -39,7 +39,7 @@ deepspeed --include=localhost:0,1,2,3,4,5,6,7 --master_port 25679 bunny/train/tr
     --save_strategy "steps" \
     --save_steps 500 \
     --save_total_limit 1 \
-    --learning_rate 2e-4 \
+    --learning_rate 1e-4 \
     --weight_decay 0. \
     --warmup_ratio 0.03 \
     --lr_scheduler_type "cosine" \
