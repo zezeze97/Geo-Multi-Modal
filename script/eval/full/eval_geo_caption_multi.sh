@@ -3,7 +3,7 @@
 
 # Assign the command line arguments to variables
 N=8
-base_answer_path='./outputs/bunny-lora-qwen2-qa-FormalGeoV2Aug3Times_calibrate_v1v2_structure_only-sft2/test_calibrate'
+base_answer_path='./outputs/bunny-yi1.5-9B-Chat-FormalGeoCoT-VisionPretrained-sft2e-mixv6/structure_only_test_calibrate_2cdl'
 gpus=(0, 1, 2, 3, 4, 5, 6, 7)  # Define the GPU IDs array
 
 
@@ -18,9 +18,9 @@ do
     # Run the Python program in the background
     # --vision_encoder_path checkpoints/checkpoints-yi1.5/bunny-yi1.5-9B-rerun \
     # 
-    CUDA_VISIBLE_DEVICES="${gpus[chunk_id]}" python bunny/eval/model_vqa.py --model-type qwen2 \
-                                                                     --model-path checkpoints/checkpoints-qwen2/bunny-lora-qwen2-qa-FormalGeoV2Aug3Times_calibrate_v1v2_structure_only-sft2/merged \
-                                                                     --vision_encoder_path checkpoints/checkpoints-qwen2/bunny-lora-qwen2-qa-FormalGeoV2Aug3Times_calibrate_v1v2_structure_only-sft2/merged \
+    CUDA_VISIBLE_DEVICES="${gpus[chunk_id]}" python bunny/eval/model_vqa.py --model-type yi1.5 \
+                                                                     --model-path checkpoints/checkpoints-yi1.5/bunny-yi1.5-9B-Chat-FormalGeoCoT-VisionPretrained-sft2e-mixv6 \
+                                                                     --vision_encoder_path checkpoints/checkpoints-yi1.5/bunny-yi1.5-9B-Chat-FormalGeoCoT-VisionPretrained-sft2e-mixv6 \
                                                                      --question-file data/formalgeo7k/formalgeo7k_v2/custom_json/qa_structure_only/test/structure_only_test_calibrate_2cdl_qs.jsonl \
                                                                      --answers-file "$answer_path" \
                                                                      --num-chunks "$N" \
@@ -28,7 +28,7 @@ do
                                                                      --image-folder /research/zhangzr/Bunny/data/formalgeo7k/formalgeo7k_v2 \
                                                                      --temperature 0 \
                                                                      --crop \
-                                                                     --conv-mode qwen-chat &
+                                                                     --conv-mode yi-chat &
 
     # Uncomment below if you need a slight delay between starting each process
     # sleep 0.1

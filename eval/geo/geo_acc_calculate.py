@@ -102,7 +102,7 @@ def calculate_accuracy(predictions_file, ground_truth_file):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--ground_truth_file", type=str, default="/home/pirenjie/prj1/geo_llava/playground/data/unigeo/test_answers.jsonl")
+    parser.add_argument("--ground_truth_file", type=str, default="/research/zhangzr/Bunny/data/gllava-data/test_answers.jsonl")
     parser.add_argument("--predictions_file", type=str, default="/home/pirenjie/prj1/geo_llava/results/llava1.5_7b_geo_finetuned_test.jsonl")
     parser.add_argument("--question_file", type=str, default="/home/pirenjie/prj1/geo_llava/playground/data/unigeo/test_questions.jsonl")
     parser.add_argument("--debug", action="store_true")

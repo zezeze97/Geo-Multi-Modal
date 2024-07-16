@@ -6,24 +6,31 @@ from tqdm import tqdm
 def parse_cdl(input_string):
     # 使用正则表达式查找各个部分
     patterns = {
-        'construction_cdl': r'construction_cdl:\n(.*?)(?=\n\w+_cdl|\Z)',
-        'image_cdl': r'image_cdl:\n(.*?)(?=\n\w+_cdl|\Z)',
-        'text_cdl': r'text_cdl:\n(.*?)(?=\n\w+_cdl|\Z)',
-        'goal_cdl': r'goal_cdl:\n(.*?)(?=\n\w+_cdl|\Z)'
+        'construction_cdl': r'(?:The )?(?:calibrate )?construction_cdl(?: is)?:\n(.*?)(?=\n(?:The )?(?:calibrate )?\w+_cdl is:|\n(?:The )?(?:calibrate )?\w+_cdl:|\nSolution is:|\Z)',
+        'image_cdl': r'(?:The )?(?:calibrate )?image_cdl(?: is)?:\n(.*?)(?=\n(?:The )?(?:calibrate )?\w+_cdl is:|\n(?:The )?(?:calibrate )?\w+_cdl:|\nSolution is:|\Z)',
+        'text_cdl': r'(?:The )?text_cdl(?: is)?:\n(.*?)(?=\n(?:The )?\w+_cdl is:|\n(?:The )?\w+_cdl:|\nSolution is:|\Z)',
+        'goal_cdl': r'(?:The )?goal_cdl(?: is)?:\n(.*?)(?=\n(?:The )?\w+_cdl is:|\n(?:The )?\w+_cdl:|\nSolution is:|\Z)'
     }
     
     results = {}
     
+    # 优先匹配包含"calibrate"的版本
     for key, pattern in patterns.items():
+        pattern = pattern.replace("(?:calibrate )?", "(?:calibrate )")
         match = re.search(pattern, input_string, re.DOTALL)
         if match:
-            # 将匹配的结果去除前后空格并存入字典
             results[key] = match.group(1).strip()
+        else:
+            # 如果未找到包含"calibrate"的版本，尝试匹配不含"calibrate"的版本
+            pattern = pattern.replace("(?:calibrate )", "(?:calibrate )?")
+            match = re.search(pattern, input_string, re.DOTALL)
+            if match:
+                results[key] = match.group(1).strip()
     
     return results
 if __name__ == '__main__':
     predict_cdl = []
-    with open('/research/zhangzr/Bunny/outputs/bunny-lora-qwen2-qa-FormalGeoV2Aug10Times_structure_only-sft2/formalgeo_merged.jsonl', 'r') as f:
+    with open('/research/zhangzr/Bunny/outputs/bunny-lora-qwen2-qa-FormalGeoV2Aug10Times_calibrate_structure_only-sft4/formalgeo_all_merged.jsonl', 'r') as f:
         for line in f:
             predict_cdl.append(json.loads(line))
     

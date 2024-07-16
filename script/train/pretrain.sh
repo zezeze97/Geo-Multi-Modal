@@ -2,7 +2,7 @@
 
 export HF_ENDPOINT=https://hf-mirror.com
 MODEL_TYPE=yi1.5
-OUTPUT_DIR=bunny-$MODEL_TYPE-9B-Chat-VisionPretrained-ArXivAlignment
+OUTPUT_DIR=bunny-$MODEL_TYPE-9B-Chat-VisionPretrained-v7-1epoch
 mkdir -p checkpoints/checkpoints-pretrain/$OUTPUT_DIR
 # --use_s2 True \
 # --vision_tower_pretrained_local_path checkpoints/checkpoints-qwen2/bunny-qwen2-caption-formalgeo-construction-cdl-and-image_cdl-0.5B-merged \
@@ -11,11 +11,15 @@ deepspeed --include=localhost:0,1,2,3,4,5,6,7 --master_port 25678 bunny/train/tr
     --deepspeed ./script/deepspeed/zero3.json \
     --model_name_or_path 01-ai/Yi-1.5-9B-Chat \
     --model_type $MODEL_TYPE \
+    --use_formalgeo_vocab_only False \
+    --add_formal_tokens False \
+    --force_tune_embedding False \
     --version yi-chat \
-    --data_path data/arXiv/processed_data/caption_data.json  \
-    --image_folder data/arXiv/processed_data \
+    --data_path data/formalgeo7k/formalgeo7k_v2/custom_json/qa_structure_only/qa_structure_only_train_aug10times_calibrate_en.json \
+    --image_folder data/formalgeo7k/formalgeo7k_v2 \
+    --customized_aug True \
     --vision_tower google/siglip-so400m-patch14-384 \
-    --vision_tower_pretrained_local_path checkpoints/checkpoints-qwen2/bunny-lora-qwen2-qa-FormalGeoV2Aug10Times_structure_only-sft2/merged \
+    --vision_tower_pretrained_local_path checkpoints/checkpoints-qwen2/bunny-lora-qwen2-qa-FormalGeoV2Aug10Times_calibrate_structure_only-sft4/merged \
     --freeze_vision_tower True \
     --tune_vision_tower False \
     --tune_mm_mlp_adapter True \
