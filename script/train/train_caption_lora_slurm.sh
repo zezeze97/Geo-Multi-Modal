@@ -1,17 +1,40 @@
 #!/bin/bash
+#SBATCH -o job.%j.out
+#SBATCH --partition=GPU80G
+#SBATCH --qos=low
+#SBATCH -J siglip0.4B-qwen2-0.5B-lora-dataAug10Times-calibrate-v1v2-sft4e
+#SBATCH --nodes=2    
+#SBATCH --ntasks=8      
+#SBATCH --cpus-per-task=16 
+#SBATCH --ntasks-per-node=4 
+#SBATCH --gres=gpu:4  
+#SBATCH --time=5-00:00:00
 
-# only for 4090
-# export NCCL_P2P_DISABLE=1
-# export NCCL_IB_DISABLE=1
+echo "Allocated nodes:"
+scontrol show hostname $SLURM_JOB_NODELIST
+echo "GPUs per node: $SLURM_GPUS_ON_NODE"
+
+source activate bunny
 export HF_ENDPOINT=https://hf-mirror.com
-
+export MASTER_ADDR=$(hostname -s)
+export MASTER_PORT=$(comm -23 <(seq 49152 65535 | sort) <(ss -tan | awk '{print $4}' | cut -d':' -f2 | sort -u) | shuf | head -n 1)
+echo $MASTER_ADDR
+echo $MASTER_PORT
+#replaces the content of hostfile every time
+function makehostfile() {
+perl -e '$slots=split /,/, $ENV{"SLURM_STEP_GPUS"};
+$slots=4 if $slots==0; # workaround 8 gpu machines
+@nodes = split /\n/, qx[scontrol show hostnames $ENV{"SLURM_JOB_NODELIST"}];
+print map { "$b$_ slots=$slots\n" } @nodes'
+}
+makehostfile > hostfile
 
 MODEL_TYPE=qwen2
 OUTPUT_DIR=bunny-lora-$MODEL_TYPE-qa-FormalGeoV2Aug10Times_calibrate_v1v2_structure_only-sft4
 mkdir -p checkpoints/checkpoints-$MODEL_TYPE/$OUTPUT_DIR
 
-deepspeed --include=localhost:0,1,2,3 --master_port 25680 bunny/train/train.py \
-    --lora_enable True --lora_r 16 --lora_alpha 32 --mm_projector_lr 2e-5 \
+deepspeed --num_nodes 2 --num_gpus 4 --launcher slurm --hostfile hostfile \
+    bunny/train/train.py --lora_enable True --lora_r 16 --lora_alpha 32 --mm_projector_lr 2e-5 \
     --deepspeed ./script/deepspeed/zero3.json \
     --model_name_or_path Qwen/Qwen2-0.5B-Instruct \
     --model_type $MODEL_TYPE \
@@ -31,9 +54,9 @@ deepspeed --include=localhost:0,1,2,3 --master_port 25680 bunny/train/train.py \
     --bf16 True \
     --output_dir checkpoints/checkpoints-$MODEL_TYPE/$OUTPUT_DIR \
     --num_train_epochs 4 \
-    --per_device_train_batch_size 4 \
+    --per_device_train_batch_size 8 \
     --per_device_eval_batch_size 1 \
-    --gradient_accumulation_steps 4 \
+    --gradient_accumulation_steps 2 \
     --evaluation_strategy "no" \
     --save_strategy "steps" \
     --save_steps 500 \
@@ -50,13 +73,3 @@ deepspeed --include=localhost:0,1,2,3 --master_port 25680 bunny/train/train.py \
     --dataloader_num_workers 4 \
     --lazy_preprocess True \
     --report_to "tensorboard" | tee 2>&1 checkpoints/checkpoints-$MODEL_TYPE/$OUTPUT_DIR/log.txt
-
-
-sh zk.sh
-
-
-
-# --eval_steps 500 \
-#     --metric_for_best_model "eval_loss" \
-#     --greater_is_better False \
-#     --load_best_model_at_end False \

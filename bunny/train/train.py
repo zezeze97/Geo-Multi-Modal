@@ -595,8 +595,8 @@ def train():
 
     
     
-    # 定义eval函数
-    eval_metric = evaluate.load('cer')
+    # 定义eval函数, 不用的时候注销掉
+    # eval_metric = evaluate.load('cer')
     
     def compute_metrics(eval_pred):
         logits, labels = eval_pred
