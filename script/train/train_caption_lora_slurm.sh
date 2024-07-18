@@ -2,48 +2,30 @@
 #SBATCH -o job.%j.out
 #SBATCH --partition=GPU80G
 #SBATCH --qos=low
-#SBATCH -J siglip0.4B-qwen2-0.5B-lora-dataAug10Times-calibrate-v1v2-sft4e
-#SBATCH --nodes=2    
-#SBATCH --ntasks=8      
+#SBATCH -J siglip0.4B-yi1.5-9B-lora-dataAug10Times-calibrate-sft4e
+#SBATCH --nodes=1    
+#SBATCH --ntasks=4     
 #SBATCH --cpus-per-task=16 
-#SBATCH --ntasks-per-node=4 
 #SBATCH --gres=gpu:4  
 #SBATCH --time=5-00:00:00
 
-echo "Allocated nodes:"
-scontrol show hostname $SLURM_JOB_NODELIST
-echo "GPUs per node: $SLURM_GPUS_ON_NODE"
-
-source activate bunny
 export HF_ENDPOINT=https://hf-mirror.com
-export MASTER_ADDR=$(hostname -s)
-export MASTER_PORT=$(comm -23 <(seq 49152 65535 | sort) <(ss -tan | awk '{print $4}' | cut -d':' -f2 | sort -u) | shuf | head -n 1)
-echo $MASTER_ADDR
-echo $MASTER_PORT
-#replaces the content of hostfile every time
-function makehostfile() {
-perl -e '$slots=split /,/, $ENV{"SLURM_STEP_GPUS"};
-$slots=4 if $slots==0; # workaround 8 gpu machines
-@nodes = split /\n/, qx[scontrol show hostnames $ENV{"SLURM_JOB_NODELIST"}];
-print map { "$b$_ slots=$slots\n" } @nodes'
-}
-makehostfile > hostfile
 
-MODEL_TYPE=qwen2
-OUTPUT_DIR=bunny-lora-$MODEL_TYPE-qa-FormalGeoV2Aug10Times_calibrate_v1v2_structure_only-sft4
+MODEL_TYPE=yi1.5
+OUTPUT_DIR=bunny-lora-$MODEL_TYPE-qa-FormalGeoV2Aug10Times_calibrate_structure_only-sft4
 mkdir -p checkpoints/checkpoints-$MODEL_TYPE/$OUTPUT_DIR
-
-deepspeed --num_nodes 2 --num_gpus 4 --launcher slurm --hostfile hostfile \
-    bunny/train/train.py --lora_enable True --lora_r 16 --lora_alpha 32 --mm_projector_lr 2e-5 \
+# 
+deepspeed --include=localhost:0,1,2,3 --master_port 25680 bunny/train/train.py \
+    --lora_enable True --lora_r 16 --lora_alpha 32 --mm_projector_lr 2e-5 \
     --deepspeed ./script/deepspeed/zero3.json \
-    --model_name_or_path Qwen/Qwen2-0.5B-Instruct \
+    --model_name_or_path 01-ai/Yi-1.5-9B-Chat \
     --model_type $MODEL_TYPE \
     --use_formalgeo_vocab_only False \
     --add_formal_tokens False \
     --force_tune_embedding False \
-    --version qwen-chat \
-    --data_path data/formalgeo7k/formalgeo7k_v2/custom_json/qa_structure_only/qa_structure_only_train_aug10times_calibrate_mixV1V2_en.json \
-    --image_folder data \
+    --version yi-chat \
+    --data_path data/formalgeo7k/formalgeo7k_v2/custom_json/qa_structure_only/qa_structure_only_train_aug10times_calibrate_en.json \
+    --image_folder data/formalgeo7k/formalgeo7k_v2 \
     --customized_aug True \
     --vision_tower google/siglip-so400m-patch14-384 \
     --freeze_vision_tower False \
