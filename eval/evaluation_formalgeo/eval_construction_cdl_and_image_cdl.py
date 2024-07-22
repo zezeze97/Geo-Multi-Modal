@@ -117,12 +117,22 @@ def getScore(predict_file, gt_path):
         
         running_consCdl.append(consCdlAcc)
         running_imageCdl.append(imageCdlAcc)
-            
+    
+    
+    
     print(f'Average construction_cdl acc is {np.mean(running_consCdl) * 100}\nPerfect construction_cdl is {percentage_of_perfect(running_consCdl)}')
     print(f'Average image_cdl acc is {np.mean(running_imageCdl) * 100}\nPerfect image_cdl is {percentage_of_perfect(running_imageCdl)}')
     print(f'textCdlPerfect is {np.mean(running_textCdl) * 100}\ngoalCdlPerfect is {np.mean(running_goalCdl) * 100}')
             
-
+    assert len(running_consCdl) == len(running_imageCdl)
+    num_of_both_perfect = 0.0
+    for i in range(len(running_consCdl)):
+        num = running_consCdl[i] + running_imageCdl[i]
+        if num >=2.0:
+            num_of_both_perfect += 1.0
+    both_perfect = (num_of_both_perfect / len(running_consCdl)) * 100
+    print(f'Both perfect construction_cdl and image_cdl: {both_perfect}')
+        
 
 if __name__ == '__main__':
     import argparse

@@ -95,7 +95,7 @@ def eval_model(args):
             # 目前只使用qwen2作为识别模型
             assert args.recong_conv_mode == 'qwen-chat'
             # 识别的时候使用先识别，再矫正指令
-            recong_qs = DEFAULT_IMAGE_TOKEN + '\n' +'Based on the image, first predict the construction_cdl and image_cdl and calibrate it.'
+            recong_qs = DEFAULT_IMAGE_TOKEN + '\n' +'Based on the image, first describe what you see in the figure, then predict the construction_cdl and image_cdl and calibrate it.'
             recong_conv = conv_templates[args.recong_conv_mode].copy()
             recong_conv.append_message(recong_conv.roles[0], recong_qs)
             recong_conv.append_message(recong_conv.roles[1], None)
