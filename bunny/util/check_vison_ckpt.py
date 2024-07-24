@@ -7,8 +7,8 @@ from bunny.model.builder import load_pretrained_model
 # set device
 torch.set_default_device('cpu')  # or 'cuda'
 # torch.cuda.set_device(0) 
-tokenizer, model_1, image_processor, context_len = load_pretrained_model(model_path='checkpoints/checkpoints-yi1.5/bunny-yi1.5-9B-Chat-FormalGeoCoT-VisionPretrained-sft1e-v12', 
-                                                                       vision_encoder_path='checkpoints/checkpoints-yi1.5/bunny-yi1.5-9B-Chat-FormalGeoCoT-VisionPretrained-sft1e-v12', 
+tokenizer, model_1, image_processor, context_len = load_pretrained_model(model_path='checkpoints/checkpoints-yi1.5/bunny-yi1.5-9B-Chat-FormalGeoCoT-VisionPretrained-sft2e-v13', 
+                                                                       vision_encoder_path='checkpoints/checkpoints-yi1.5/bunny-yi1.5-9B-Chat-FormalGeoCoT-VisionPretrained-sft2e-v13', 
                                                                        model_base=None, 
                                                                        model_name='bunny-yi',
                                                                        model_type='yi1.5',

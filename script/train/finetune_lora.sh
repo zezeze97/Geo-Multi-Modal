@@ -7,22 +7,22 @@ export HF_ENDPOINT=https://hf-mirror.com
 MODEL_TYPE=yi1.5
 
 PRETRAIN_DIR=bunny-$MODEL_TYPE-34B-Chat-VisionPretrained-v13-1epoch
-OUTPUT_DIR=bunny-lora-128-$MODEL_TYPE-34B-Chat-FormalGeoCoT-VisionPretrained-sft2e-v13
+OUTPUT_DIR=bunny-lora-128-$MODEL_TYPE-34B-Chat-FormalGeoCoT-VisionPretrained-sft2e-v14
 mkdir -p checkpoints/checkpoints-$MODEL_TYPE/$OUTPUT_DIR
 #    --vision_tower_pretrained_local_path checkpoints/checkpoints-qwen2/bunny-qwen2-caption-model-pgdp \
 #     
 #  --vision_tower_pretrained_local_path checkpoints/checkpoints-qwen2/bunny-qwen2-caption-formalgeo-construction-cdl-and-image_cdl-0.5B-merged \
-# export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True 
+export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True 
 deepspeed --include=localhost:0,1,2,3,4,5,6,7 --master_port 25679 bunny/train/train.py \
-    --lora_enable True --lora_r 128 --lora_alpha 256 --mm_projector_lr 2e-5 \
+    --lora_enable True --lora_r 128 --lora_alpha 256 --mm_projector_lr 1e-5 \
     --deepspeed ./script/deepspeed/zero3.json \
-    --model_name_or_path 01-ai/Yi-1.5-9B-Chat \
+    --model_name_or_path 01-ai/Yi-1.5-34B-Chat \
     --model_type $MODEL_TYPE \
     --use_formalgeo_vocab_only False \
     --add_formal_tokens False \
     --force_tune_embedding False \
     --version yi-chat \
-    --data_path data/formalgeo7k/formalgeo7k_v2/custom_json/qa_resoning/formalgeov2_aug_train_less_rewrite.json \
+    --data_path data/formalgeo7k/formalgeo7k_v2/custom_json/qa_mixTask/qa_mix_train_v14.json \
     --image_folder data/formalgeo7k/formalgeo7k_v2 \
     --customized_aug True \
     --vision_tower google/siglip-so400m-patch14-384 \
@@ -43,7 +43,7 @@ deepspeed --include=localhost:0,1,2,3,4,5,6,7 --master_port 25679 bunny/train/tr
     --save_strategy "steps" \
     --save_steps 500 \
     --save_total_limit 1 \
-    --learning_rate 2e-4 \
+    --learning_rate 1e-4 \
     --weight_decay 0. \
     --warmup_ratio 0.03 \
     --lr_scheduler_type "cosine" \

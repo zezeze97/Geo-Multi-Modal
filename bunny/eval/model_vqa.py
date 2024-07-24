@@ -121,7 +121,7 @@ def eval_model(args):
                     temperature=None,
                     top_p=None,
                     top_k=None,
-                    num_beams=args.num_beams,
+                    num_beams=1, # args.num_beams,
                     # no_repeat_ngram_size=3,
                     max_new_tokens=3500, # 2048
                     eos_token_id=recong_tokenizer.eos_token_id,
@@ -288,7 +288,7 @@ if __name__ == "__main__":
     parser.add_argument("--chunk-idx", type=int, default=0)
     parser.add_argument("--temperature", type=float, default=0.2)
     parser.add_argument("--top_p", type=float, default=None)
-    parser.add_argument("--num_beams", type=int, default=1)
+    parser.add_argument("--num-beams", type=int, default=1)
     parser.add_argument("--crop", action='store_true')
     parser.add_argument("--cascade-mode", action='store_true')
     parser.add_argument("--recong-model-path", type=str, default=None)

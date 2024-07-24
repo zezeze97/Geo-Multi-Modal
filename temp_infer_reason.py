@@ -11,12 +11,14 @@ torch.set_default_device(device)
 
 # create model
 model = AutoModelForCausalLM.from_pretrained(
-    'checkpoints/publish/GeoReasoner',
+    # 'checkpoints/publish/GeoReasoner',
+    'NaughtyDog97/FormalEnhencedGPS',
     torch_dtype=torch.float16, # float32 for cpu
     device_map='auto',
     trust_remote_code=True)
 tokenizer = AutoTokenizer.from_pretrained(
-    'checkpoints/publish/GeoReasoner',
+    # 'checkpoints/publish/GeoReasoner',
+    'NaughtyDog97/FormalEnhencedGPS',
     trust_remote_code=True)
 
 # text prompt

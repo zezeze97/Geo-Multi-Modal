@@ -3,7 +3,7 @@
 question_file=$1
 # Assign the command line arguments to variables
 N=8
-base_answer_path="./outputs/bunny-lora-qwen2-qa-FormalGeoV2Aug10Times_calibrate_v1v2_structure_only-sft4-add05/${question_file}"
+base_answer_path="./outputs/report/bunny-lora-qwen2-qa-FormalGeoV2Aug10Times_calibrate_structure_only-sft4-add05/${question_file}"
 gpus=(0, 1, 2, 3, 4, 5, 6, 7)  # Define the GPU IDs array
 
 
@@ -19,8 +19,8 @@ do
     # --vision_encoder_path checkpoints/checkpoints-yi1.5/bunny-yi1.5-9B-rerun \
     # 
     CUDA_VISIBLE_DEVICES="${gpus[chunk_id]}" python bunny/eval/model_vqa.py --model-type qwen2 \
-                                                                     --model-path checkpoints/checkpoints-qwen2/bunny-lora-qwen2-qa-FormalGeoV2Aug10Times_calibrate_v1v2_structure_only-sft4-add05/merged \
-                                                                     --vision_encoder_path checkpoints/checkpoints-qwen2/bunny-lora-qwen2-qa-FormalGeoV2Aug10Times_calibrate_v1v2_structure_only-sft4-add05/merged \
+                                                                     --model-path checkpoints/checkpoints-qwen2/bunny-lora-qwen2-qa-FormalGeoV2Aug10Times_calibrate_structure_only-sft4-add05/merged \
+                                                                     --vision_encoder_path checkpoints/checkpoints-qwen2/bunny-lora-qwen2-qa-FormalGeoV2Aug10Times_calibrate_structure_only-sft4-add05/merged \
                                                                      --question-file data/formalgeo7k/formalgeo7k_v2/custom_json/qa_structure_only/test/${question_file}.jsonl \
                                                                      --answers-file "$answer_path" \
                                                                      --num-chunks "$N" \
