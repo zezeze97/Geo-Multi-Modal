@@ -7,7 +7,7 @@ export HF_ENDPOINT=https://hf-mirror.com
 MODEL_TYPE=yi1.5
 
 PRETRAIN_DIR=bunny-$MODEL_TYPE-34B-Chat-VisionPretrained-v13-1epoch
-OUTPUT_DIR=bunny-lora-128-$MODEL_TYPE-34B-Chat-FormalGeoCoT-VisionPretrained-sft2e-v14
+OUTPUT_DIR=bunny-lora-128-$MODEL_TYPE-34B-Chat-FormalGeoCoT-VisionPretrained-sft1e-v14
 mkdir -p checkpoints/checkpoints-$MODEL_TYPE/$OUTPUT_DIR
 #    --vision_tower_pretrained_local_path checkpoints/checkpoints-qwen2/bunny-qwen2-caption-model-pgdp \
 #     
@@ -35,7 +35,7 @@ deepspeed --include=localhost:0,1,2,3,4,5,6,7 --master_port 25679 bunny/train/tr
     --group_by_modality_length False \
     --bf16 True \
     --output_dir checkpoints/checkpoints-$MODEL_TYPE/$OUTPUT_DIR \
-    --num_train_epochs 2 \
+    --num_train_epochs 1 \
     --per_device_train_batch_size 8 \
     --per_device_eval_batch_size 1 \
     --gradient_accumulation_steps 2 \
