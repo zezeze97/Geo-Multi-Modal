@@ -7,3 +7,4 @@ nohup.out
 data/
 gradio-logs/
 *.log
+*.out

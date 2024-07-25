@@ -2,16 +2,32 @@
 #SBATCH -o job.%j.out
 #SBATCH --partition=GPU80G
 #SBATCH --qos=low
-#SBATCH -J siglip0.4B-yi1.5-9B-Chat-visionPretrained-alignment-sft2-V14
-#SBATCH --nodes=1    
-#SBATCH --ntasks=4     
+#SBATCH -J siglip0.4B-yi1.5-9B-Chat-visionPretrained-alignment-sft2-V14-MultiNode
+#SBATCH --nodes=2    
+#SBATCH --ntasks=8    
 #SBATCH --cpus-per-task=16 
 #SBATCH --gres=gpu:4  
 #SBATCH --time=5-00:00:00
 
-export HF_ENDPOINT=https://hf-mirror.com
 
-# export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True 
+
+export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True 
+export NCCL_IB_DISABLE=1
+export GPUS_PER_NODE=4
+export MASTER_ADDR=$(scontrol show hostnames $SLURM_JOB_NODELIST | head -n 1)
+export MASTER_PORT=9901
+
+
+#replaces the content of hostfile every time
+function makehostfile() {
+perl -e '$slots=split /,/, $ENV{"SLURM_STEP_GPUS"};
+$slots=4 if $slots==0; # workaround 8 gpu machines
+@nodes = split /\n/, qx[scontrol show hostnames $ENV{"SLURM_JOB_NODELIST"}];
+print map { "$b$_ slots=$slots\n" } @nodes'
+}
+makehostfile > hostfile
+
+
 
 MODEL_TYPE=yi1.5
 export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True 
@@ -21,10 +37,10 @@ PRETRAIN_DIR=bunny-$MODEL_TYPE-9B-Chat-VisionPretrained-v7-1epoch
 # 
 # --vision_tower_pretrained_local_path checkpoints/checkpoints-qwen2/bunny-lora-qwen2-qa-FormalGeoV2Aug10Times_structure_only-sft2/merged \
 
-OUTPUT_DIR=bunny-$MODEL_TYPE-9B-Chat-FormalGeoCoT-VisionPretrained-sft2e-v14
+OUTPUT_DIR=bunny-$MODEL_TYPE-9B-Chat-FormalGeoCoT-VisionPretrained-sft2e-v14-2Node
 
 mkdir -p checkpoints/checkpoints-$MODEL_TYPE/$OUTPUT_DIR
-deepspeed --include=localhost:0,1,2,3 --master_port 25679 bunny/train/train.py \
+deepspeed --num_gpus 4 --num_nodes 2 --hostfile ./hostfile --launcher SLURM --master_addr $MASTER_ADDR --master_port $MASTER_PORT bunny/train/train_multiNode.py \
     --deepspeed ./script/deepspeed/zero3.json \
     --model_name_or_path 01-ai/Yi-1.5-9B-Chat \
     --model_type $MODEL_TYPE \
@@ -46,9 +62,9 @@ deepspeed --include=localhost:0,1,2,3 --master_port 25679 bunny/train/train.py \
     --bf16 True \
     --output_dir checkpoints/checkpoints-$MODEL_TYPE/$OUTPUT_DIR \
     --num_train_epochs 2 \
-    --per_device_train_batch_size 4 \
+    --per_device_train_batch_size 8 \
     --per_device_eval_batch_size 1 \
-    --gradient_accumulation_steps 8 \
+    --gradient_accumulation_steps 2 \
     --evaluation_strategy "no" \
     --save_strategy "steps" \
     --save_steps 500 \
