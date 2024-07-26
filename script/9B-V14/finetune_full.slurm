@@ -2,14 +2,16 @@
 #SBATCH -o job.%j.out
 #SBATCH --partition=GPU80G
 #SBATCH --qos=low
-#SBATCH -J siglip0.4B-yi1.5-9B-Chat-visionPretrained-alignment-sft2-V14-MultiNode
+#SBATCH -J 9B-V14
 #SBATCH --nodes=1    
 #SBATCH --ntasks=4  
 #SBATCH --cpus-per-task=16 
 #SBATCH --gres=gpu:4  
 #SBATCH --time=5-00:00:00
 
-
+module load cuda/11.8
+module load gcc/12.2.0
+module load openmpi/4.1.5-gcc_12.2.0
 
 export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True 
 export NCCL_IB_DISABLE=1
@@ -62,9 +64,9 @@ deepspeed --num_gpus 4 --num_nodes 1 --hostfile ./hostfile --launcher SLURM --ma
     --bf16 True \
     --output_dir checkpoints/checkpoints-$MODEL_TYPE/$OUTPUT_DIR \
     --num_train_epochs 2 \
-    --per_device_train_batch_size 8 \
+    --per_device_train_batch_size 4 \
     --per_device_eval_batch_size 1 \
-    --gradient_accumulation_steps 4 \
+    --gradient_accumulation_steps 8 \
     --evaluation_strategy "no" \
     --save_strategy "steps" \
     --save_steps 500 \

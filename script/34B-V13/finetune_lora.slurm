@@ -1,14 +1,17 @@
 #!/bin/bash
 #SBATCH -o job.%j.out
 #SBATCH --partition=GPU80G
-#SBATCH --qos=normal
+#SBATCH --qos=low
 #SBATCH -J 34B-V13
 #SBATCH --nodes=1    
 #SBATCH --ntasks=4    
 #SBATCH --cpus-per-task=16 
 #SBATCH --gres=gpu:4  
 #SBATCH --time=5-00:00:00
-
+module load cuda/11.8
+module load gcc/12.2.0
+module load openmpi/4.1.5-gcc_12.2.0
+export TMPDIR=/tmp
 export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True 
 export NCCL_IB_DISABLE=1
 export GPUS_PER_NODE=4
