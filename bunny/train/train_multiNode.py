@@ -204,6 +204,8 @@ def train():
     # debug
     training_args.gradient_checkpointing_kwargs = {"use_reentrant": False}
     local_rank = training_args.local_rank
+    torch.cuda.set_device(local_rank)
+    device = torch.device("cuda", local_rank)
     
     deepspeed.init_distributed()
     
