@@ -20,6 +20,7 @@ import evaluate
 import numpy as np
 from eval.evaluation_formalgeo.utils import getConsCdlAcc
 import deepspeed
+import os
 
 local_rank = None
 
@@ -195,10 +196,6 @@ def safe_save_model_for_hf_trainer(trainer: transformers.Trainer,
 
 
 def train():
-    # debug in multiNode?
-    deepspeed.init_distributed()
-    # dist.init_process_group(backend='nccl', init_method='env://')
-    
     global local_rank
     
 
@@ -207,6 +204,12 @@ def train():
     # debug
     training_args.gradient_checkpointing_kwargs = {"use_reentrant": False}
     local_rank = training_args.local_rank
+    
+    deepspeed.init_distributed()
+    
+    
+    
+    
     # 获取 global rank
     global_rank = dist.get_rank()
     
