@@ -4,7 +4,7 @@ qa_mode=$2
 
 # Assign the command line arguments to variables
 N=8
-base_answer_path="./outputs/report//bunny-lora-128-yi1.5-34B-Chat-FormalGeoCoT-VisionPretrained-sft2e-v14/${question_file}_${qa_mode}"
+base_answer_path="./outputs/report//bunny-lora-128-yi1.5-34B-Chat-FormalGeoCoT-VisionPretrained-sft1e-v14/${question_file}_${qa_mode}"
 gpus=(0, 1, 2, 3, 4, 5, 6, 7)  # Define the GPU IDs array
 
 
@@ -20,8 +20,8 @@ do
     # --vision_encoder_path checkpoints/checkpoints-yi1.5/bunny-yi1.5-9B-rerun \
     # 
     CUDA_VISIBLE_DEVICES="${gpus[chunk_id]}" python bunny/eval/model_vqa.py --model-type yi1.5 \
-                                                                     --model-path checkpoints/checkpoints-yi1.5/bunny-lora-128-yi1.5-34B-Chat-FormalGeoCoT-VisionPretrained-sft2e-v14/merged \
-                                                                     --vision_encoder_path checkpoints/checkpoints-yi1.5/bunny-lora-128-yi1.5-34B-Chat-FormalGeoCoT-VisionPretrained-sft2e-v14/merged \
+                                                                     --model-path checkpoints/checkpoints-yi1.5/bunny-lora-128-yi1.5-34B-Chat-FormalGeoCoT-VisionPretrained-sft1e-v14/merged \
+                                                                     --vision_encoder_path checkpoints/checkpoints-yi1.5/bunny-lora-128-yi1.5-34B-Chat-FormalGeoCoT-VisionPretrained-sft1e-v14/merged \
                                                                      --question-file data/formalgeo7k/formalgeo7k_v2/custom_json/qa_resoning/geoqa_test/${question_file}.jsonl \
                                                                      --answers-file "$answer_path" \
                                                                      --num-chunks "$N" \
