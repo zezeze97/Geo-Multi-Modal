@@ -1,4 +1,5 @@
-sh script/train/finetune_lora.sh > siglip0.4B-yi1.5-34B-Chat-visionPretrained-alignment-sft1e-V14.log 2>&1
+sh script/9B-V12/finetune_full.sh > 9B-V12.log 2>&1 
+sh script/9B-V12/eval_reason_all.sh
 sh zk.sh
 
 

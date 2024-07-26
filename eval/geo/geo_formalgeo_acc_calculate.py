@@ -6,58 +6,66 @@ import os
 def extract_choice(q, answer, i):
     
     
-    # 使用正则表达式查找"The final answer is:"后的数字
-    match = re.search(r"The final answer is:\s*(.*)", answer)
-    if match:
-        return match.group(1)
     
-    pattern0 = r"The answer is option ([A-D])"
-    match = re.search(pattern0, answer)
-    if match:
-        return match.group(1)
+    if not args.choice_mode:
+        # 使用正则表达式查找"The final answer is:"后的数字
+        match = re.search(r"The final answer is:\s*(.*)", answer)
+        if match:
+            return match.group(1)
+    else:
+        
+        pattern0 = r"The final answer is: ([A-D])"
+        match = re.search(pattern0, answer)
+        if match:
+            return match.group(1)
     
-    
-    
-    
-    pattern0 = r"Answer:([A-D])"
-    match = re.search(pattern0, answer)
-    if match:
-        return match.group(1)
-    # Pattern 1: Therefore, the correct answer is option {choice}
+        pattern0 = r"The answer is option ([A-D])"
+        match = re.search(pattern0, answer)
+        if match:
+            return match.group(1)
+        
+        
+        
+        
+        pattern0 = r"Answer:([A-D])"
+        match = re.search(pattern0, answer)
+        if match:
+            return match.group(1)
+        # Pattern 1: Therefore, the correct answer is option {choice}
 
-    pattern1 = r"the correct answer is option ([A-D])"
-    match = re.search(pattern1, answer)
-    if match:
-        return match.group(1)
+        pattern1 = r"the correct answer is option ([A-D])"
+        match = re.search(pattern1, answer)
+        if match:
+            return match.group(1)
 
-    # Pattern 2: Therefore, option {choice} is selected
-    pattern2 = r"option ([A-D]) is selected"
-    match = re.search(pattern2, answer)
-    if match:
-        return match.group(1)
+        # Pattern 2: Therefore, option {choice} is selected
+        pattern2 = r"option ([A-D]) is selected"
+        match = re.search(pattern2, answer)
+        if match:
+            return match.group(1)
 
-    # Pattern 3: Therefore, the answer is option {choice}
-    pattern3 = r"the answer is option ([A-D])"
-    match = re.search(pattern3, answer)
-    if match:
-        return match.group(1)
-    #
-    # Pattern 4: Therefore, the answer is (C), The answer is (D) 14.
-    pattern4 = r"the answer is \(([A-D])\)"
-    match = re.search(pattern4, answer)
-    if match:
-        return match.group(1)
+        # Pattern 3: Therefore, the answer is option {choice}
+        pattern3 = r"the answer is option ([A-D])"
+        match = re.search(pattern3, answer)
+        if match:
+            return match.group(1)
+        #
+        # Pattern 4: Therefore, the answer is (C), The answer is (D) 14.
+        pattern4 = r"the answer is \(([A-D])\)"
+        match = re.search(pattern4, answer)
+        if match:
+            return match.group(1)
 
-    # Pattern 5: find the solution from the last sentence
-    sentences = answer.split(".")
-    try:
-        last_sentence = sentences[-2].strip()
-    except:
-        return None
-    match = re.search(r'is ([A-D])', last_sentence)
-    if match:
-        answer = match.group(1)
-        return answer
+        # Pattern 5: find the solution from the last sentence
+        sentences = answer.split(".")
+        try:
+            last_sentence = sentences[-2].strip()
+        except:
+            return None
+        match = re.search(r'is ([A-D])', last_sentence)
+        if match:
+            answer = match.group(1)
+            return answer
     # print(f"not found {i}")
     # print("#"*10)
     # print(f"question:\n{q}")
