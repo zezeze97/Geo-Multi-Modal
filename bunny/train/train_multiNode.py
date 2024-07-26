@@ -196,7 +196,7 @@ def safe_save_model_for_hf_trainer(trainer: transformers.Trainer,
 
 def train():
     # debug in multiNode?
-    # deepspeed.init_distributed()
+    deepspeed.init_distributed()
     # dist.init_process_group(backend='nccl', init_method='env://')
     
     global local_rank
