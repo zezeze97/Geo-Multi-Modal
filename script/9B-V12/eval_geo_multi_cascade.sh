@@ -3,9 +3,9 @@ question_file=$1
 qa_mode=$2
 
 # Assign the command line arguments to variables
-N=4
+N=8
 base_answer_path="./outputs/report/bunny-yi1.5-9B-Chat-FormalGeoCoT-VisionPretrained-sft2e-v12/${question_file}_${qa_mode}"
-gpus=(0, 1, 2, 3)  # Define the GPU IDs array
+gpus=(0, 1, 2, 3, 4, 5, 6, 7)  # Define the GPU IDs array
 
 
 # Loop over each chunk/process
