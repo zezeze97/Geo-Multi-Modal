@@ -4,14 +4,14 @@ export HF_ENDPOINT=https://hf-mirror.com
 # huggingface-cli download --token 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 --resume-download meta-llama/Meta-Llama-3-8B-Instruct
 # huggingface-cli download --token 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 --resume-download meta-llama/Meta-Llama-3-70B
 # huggingface-cli download --token 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 --resume-download meta-llama/Meta-Llama-3-70B-Instruct --local-dir Llama-3-70B-Instruct --local-dir-use-symlinks False
-huggingface-cli download --token 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 --resume-download meta-llama/Meta-Llama-3.1-8B-Instruct
+# huggingface-cli download --token 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 --resume-download meta-llama/Meta-Llama-3.1-8B-Instruct
 
 
 
 
 
 # huggingface-cli download --resume-download Qwen/Qwen2-7B-Instruct
-# huggingface-cli download --resume-download NaughtyDog97/FormalEnhencedGPS
+huggingface-cli download --resume-download NaughtyDog97/FormalEnhencedGPS-34B
 # huggingface-cli download --resume-download 01-ai/Yi-1.5-34B-Chat
 # huggingface-cli download --resume-download 01-ai/Yi-1.5-9B-Chat-16K
 # huggingface-cli download --resume-download 01-ai/Yi-1.5-34B-Chat-16K

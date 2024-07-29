@@ -74,7 +74,7 @@ def cascade_prediction(recong_tokenizer, recong_model, recong_image_processor, r
     if qa_mode in ['q_predcdl2ans', 'q_predcdl2cdl_ans']:
         assert recong_conv_mode == 'qwen-chat'
         # 识别的时候使用先识别，再矫正指令
-        recong_qs = DEFAULT_IMAGE_TOKEN + '\n' +'Based on the image, first predict the construction_cdl and image_cdl and calibrate it.'
+        recong_qs = DEFAULT_IMAGE_TOKEN + '\n' +'Based on the image, first describe what you see in the figure, then predict the construction_cdl and image_cdl and calibrate it.'
         recong_conv = conv_templates[recong_conv_mode].copy()
         recong_conv.append_message(recong_conv.roles[0], recong_qs)
         recong_conv.append_message(recong_conv.roles[1], None)
@@ -161,8 +161,8 @@ def cascade_prediction(recong_tokenizer, recong_model, recong_image_processor, r
             
             
 if __name__ == '__main__':
-    img_path = 'data/formalgeo7k/formalgeo7k_v2/diagrams/1.png'
-    qs = 'As shown in the diagram, triangle RST is congruent to triangle XYZ, TR=x+21, ZX=2*x-14, ∠TRS=4*y-10°, ∠ZXY=3*y+5°. Find the value of y.'
+    img_path = 'data/formalgeo7k/formalgeo7k_v2/diagrams/4927.png'
+    qs = 'As shown in the diagram, AE/AB=1/4, M is the midpoint of segment AC, BE is parallel to CP, EA is parallel to CP. Find the ratio of the length of line BC to the length of line CD.'
     qa_mode = 'q_predcdl2cdl_ans'
     # 加载识别模型和推理模型
     
@@ -173,8 +173,8 @@ if __name__ == '__main__':
     # set device
     torch.set_default_device('cuda')  # or 'cuda'
     recong_conv_mode = 'qwen-chat'
-    recong_tokenizer, recong_model, recong_image_processor, recong_context_len = load_pretrained_model(model_path='checkpoints/checkpoints-qwen2/bunny-lora-qwen2-qa-FormalGeoV2Aug10Times_calibrate_structure_only-sft4/merged', 
-                                                                        vision_encoder_path='checkpoints/checkpoints-qwen2/bunny-lora-qwen2-qa-FormalGeoV2Aug10Times_calibrate_structure_only-sft4/merged', 
+    recong_tokenizer, recong_model, recong_image_processor, recong_context_len = load_pretrained_model(model_path='checkpoints/checkpoints-qwen2/bunny-lora-qwen2-qa-FormalGeoV2Aug10Times_calibrate_structure_only-sft4-add05/merged', 
+                                                                        vision_encoder_path='checkpoints/checkpoints-qwen2/bunny-lora-qwen2-qa-FormalGeoV2Aug10Times_calibrate_structure_only-sft4-add05/merged', 
                                                                         model_base=None, 
                                                                         model_name='bunny-qwen2',
                                                                         model_type='qwen2',
@@ -183,8 +183,8 @@ if __name__ == '__main__':
 
 
     conv_mode = 'yi-chat'
-    tokenizer, model, image_processor, context_len = load_pretrained_model(model_path='checkpoints/checkpoints-yi1.5/bunny-yi1.5-9B-Chat-FormalGeoCoT-VisionPretrained-sft1e-v8', 
-                                                                        vision_encoder_path='checkpoints/checkpoints-yi1.5/bunny-yi1.5-9B-Chat-FormalGeoCoT-VisionPretrained-sft1e-v8', 
+    tokenizer, model, image_processor, context_len = load_pretrained_model(model_path='checkpoints/checkpoints-yi1.5/bunny-yi1.5-9B-Chat-FormalGeoCoT-VisionPretrained-sft2e-v12', 
+                                                                        vision_encoder_path='checkpoints/checkpoints-yi1.5/bunny-yi1.5-9B-Chat-FormalGeoCoT-VisionPretrained-sft2e-v12', 
                                                                         model_base=None, 
                                                                         model_name='bunny-yi1.5',
                                                                         model_type='yi1.5',
