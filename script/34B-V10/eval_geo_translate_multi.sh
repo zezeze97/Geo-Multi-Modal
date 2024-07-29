@@ -25,7 +25,7 @@ do
                                                                      --answers-file "$answer_path" \
                                                                      --num-chunks "$N" \
                                                                      --chunk-idx "$chunk_id" \
-                                                                     --image-folder /research/zhangzr/Bunny/data/formalgeo7k/formalgeo7k_v2 \
+                                                                     --image-folder data/formalgeo7k/formalgeo7k_v2 \
                                                                      --temperature 0 \
                                                                      --crop \
                                                                      --conv-mode yi-chat &

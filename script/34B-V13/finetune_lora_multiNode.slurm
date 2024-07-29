@@ -2,9 +2,9 @@
 #SBATCH -o job.%j.out
 #SBATCH --partition=GPU80G
 #SBATCH --qos=normal
-#SBATCH -J 34B-V13
-#SBATCH --nodes=1    
-#SBATCH --ntasks=4    
+#SBATCH -J 34B-MultiNode
+#SBATCH --nodes=2    
+#SBATCH --ntasks=8    
 #SBATCH --cpus-per-task=16 
 #SBATCH --gres=gpu:4  
 #SBATCH --time=5-00:00:00
@@ -12,14 +12,19 @@ module load cuda/11.8
 module load gcc/12.2.0
 module load openmpi
 export SLURM_MPI_TYPE=pmi2
-export TMPDIR=/tmp
 export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True 
 export NCCL_IB_DISABLE=1
+export NCCL_SOCKET_IFNAME=eno2
+export NCCL_P2P_LEVEL=NVL
 export GPUS_PER_NODE=4
 export MASTER_ADDR=$(scontrol show hostnames $SLURM_JOB_NODELIST | head -n 1)
 export MASTER_PORT=9905
 
+# export NCCL_DEBUG=INFO
+# export DEEPSPEED_LOG_LEVEL=DEBUG
 
+
+echo $NCCL_SOCKET_IFNAME
 
 #replaces the content of hostfile every time
 function makehostfile() {
@@ -34,15 +39,16 @@ makehostfile > hostfile
 MODEL_TYPE=yi1.5
 
 PRETRAIN_DIR=bunny-$MODEL_TYPE-34B-Chat-VisionPretrained-v13-1epoch
-OUTPUT_DIR=bunny-lora-128-$MODEL_TYPE-34B-Chat-FormalGeoCoT-VisionPretrained-sft2e-v13
+OUTPUT_DIR=bunny-lora-128-$MODEL_TYPE-34B-Chat-FormalGeoCoT-VisionPretrained-sft2e-v13-2Node
 mkdir -p checkpoints/checkpoints-$MODEL_TYPE/$OUTPUT_DIR
 #    --vision_tower_pretrained_local_path checkpoints/checkpoints-qwen2/bunny-qwen2-caption-model-pgdp \
 #     
 #  --vision_tower_pretrained_local_path checkpoints/checkpoints-qwen2/bunny-qwen2-caption-formalgeo-construction-cdl-and-image_cdl-0.5B-merged \
 export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True 
-deepspeed --num_nodes 1 --hostfile ./hostfile --launcher SLURM --master_addr $MASTER_ADDR --master_port $MASTER_PORT bunny/train/train.py \
+deepspeed --num_nodes 2 --hostfile ./hostfile --master_addr $MASTER_ADDR --master_port $MASTER_PORT --launcher SLURM --no_ssh_check --force_multi \
+    bunny/train/train_multiNode.py \
     --lora_enable True --lora_r 128 --lora_alpha 256 --mm_projector_lr 1e-5 \
-    --deepspeed ./script/deepspeed/zero3.json \
+    --deepspeed ./script/deepspeed/zero2.json \
     --model_name_or_path 01-ai/Yi-1.5-34B-Chat \
     --model_type $MODEL_TYPE \
     --use_formalgeo_vocab_only False \
@@ -65,10 +71,10 @@ deepspeed --num_nodes 1 --hostfile ./hostfile --launcher SLURM --master_addr $MA
     --num_train_epochs 2 \
     --per_device_train_batch_size 8 \
     --per_device_eval_batch_size 1 \
-    --gradient_accumulation_steps 4 \
+    --gradient_accumulation_steps 2 \
     --evaluation_strategy "no" \
     --save_strategy "steps" \
-    --save_steps 100 \
+    --save_steps 500 \
     --save_total_limit 1 \
     --learning_rate 1e-4 \
     --weight_decay 0. \
@@ -82,14 +88,3 @@ deepspeed --num_nodes 1 --hostfile ./hostfile --launcher SLURM --master_addr $MA
     --dataloader_num_workers 4 \
     --lazy_preprocess True \
     --report_to "tensorboard" | tee 2>&1 checkpoints/checkpoints-$MODEL_TYPE/$OUTPUT_DIR/log.txt
-
-
-python script/merge_lora_weights.py --model-type yi1.5 \
-                                    --model-base 01-ai/Yi-1.5-34B-Chat \
-                                    --model-path checkpoints/checkpoints-$MODEL_TYPE/$OUTPUT_DIR \
-                                    --vision-encoder-path checkpoints/checkpoints-qwen2/bunny-lora-qwen2-qa-FormalGeoV2Aug10Times_calibrate_structure_only-sft4-add05/merged \
-                                    --save-model-path checkpoints/checkpoints-$MODEL_TYPE/$OUTPUT_DIR/merged
-
-
-
-sh script/34B-V13/eval_reason_all.sh

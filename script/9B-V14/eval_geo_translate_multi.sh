@@ -3,7 +3,7 @@
 
 # Assign the command line arguments to variables
 N=4
-base_answer_path='./outputs/reportbunny-yi1.5-9B-Chat-FormalGeoCoT-VisionPretrained-sft2e-v14/test_geoqa_translate'
+base_answer_path='./outputs/bunny-yi1.5-9B-Chat-FormalGeoCoT-VisionPretrained-sft2e-v14/test_geoqa_translate'
 gpus=(0, 1, 2, 3)  # Define the GPU IDs array
 
 
@@ -25,7 +25,7 @@ do
                                                                      --answers-file "$answer_path" \
                                                                      --num-chunks "$N" \
                                                                      --chunk-idx "$chunk_id" \
-                                                                     --image-folder /research/zhangzr/Bunny/data/formalgeo7k/formalgeo7k_v2 \
+                                                                     --image-folder data/formalgeo7k/formalgeo7k_v2 \
                                                                      --temperature 0 \
                                                                      --crop \
                                                                      --conv-mode yi-chat &

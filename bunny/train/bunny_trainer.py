@@ -6,6 +6,7 @@ from torch import nn
 from transformers import Trainer
 from bunny.trl.trl import DPOTrainer
 from transformers.trainer import is_sagemaker_mp_enabled, get_parameter_names, has_length, ALL_LAYERNORM_LAYERS, logger, PreTrainedModel
+import torch.distributed as dist
 
 from typing import Any, Callable, Dict, List, Literal, Optional, Tuple, Union
 import numpy as np
@@ -246,7 +247,8 @@ class BunnyTrainer(Trainer):
 
             weight_to_save = get_mm_adapter_state_maybe_zero_3(self.model.named_parameters(), keys_to_match)
 
-            if self.args.local_rank == 0 or self.args.local_rank == -1:
+            # if self.args.local_rank == 0 or self.args.local_rank == -1:
+            if dist.get_rank() == 0:
                 self.model.config.save_pretrained(output_dir)
                 torch.save(weight_to_save, os.path.join(output_dir, f'mm_projector.bin'))
         else:
@@ -381,7 +383,8 @@ class BunnyTrainerDPO(DPOTrainer):
 
             weight_to_save = get_mm_adapter_state_maybe_zero_3(self.model.named_parameters(), keys_to_match)
 
-            if self.args.local_rank == 0 or self.args.local_rank == -1:
+            # if self.args.local_rank == 0 or self.args.local_rank == -1:
+            if dist.get_rank() == 0:
                 self.model.config.save_pretrained(output_dir)
                 torch.save(weight_to_save, os.path.join(output_dir, f'mm_projector.bin'))
         else:

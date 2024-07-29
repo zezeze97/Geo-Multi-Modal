@@ -1,7 +1,7 @@
 #!/bin/bash
 #SBATCH -o job.%j.out
 #SBATCH --partition=GPU80G
-#SBATCH --qos=high
+#SBATCH --qos=normal
 #SBATCH -J 9B-S2-Alignmnet
 #SBATCH --nodes=2    
 #SBATCH --ntasks=8  
@@ -11,8 +11,8 @@
 
 module load cuda/11.8
 module load gcc/12.2.0
-module load openmpi/4.1.5-gcc_12.2.0
-
+module load openmpi
+export SLURM_MPI_TYPE=pmi2
 export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True 
 export NCCL_IB_DISABLE=1
 export GPUS_PER_NODE=4
@@ -33,7 +33,8 @@ makehostfile > hostfile
 
 MODEL_TYPE=yi1.5
 OUTPUT_DIR=bunny-$MODEL_TYPE-9B-Chat-VisionPretrained-S2
-deepspeed --num_gpus 4 --num_nodes 2 --hostfile ./hostfile --launcher SLURM --master_addr $MASTER_ADDR --master_port $MASTER_PORT bunny/train/train_multiNode.py \
+deepspeed --num_nodes 2 --hostfile ./hostfile --master_addr $MASTER_ADDR --master_port $MASTER_PORT  --launcher SLURM \
+     bunny/train/train_multiNode.py \
     --deepspeed ./script/deepspeed/zero3.json \
     --model_name_or_path 01-ai/Yi-1.5-9B-Chat \
     --model_type $MODEL_TYPE \

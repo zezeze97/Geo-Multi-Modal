@@ -23,10 +23,10 @@ import deepspeed
 import os
 
 local_rank = None
-
+global_rank = None
 
 def rank0_print(*args):
-    if local_rank == 0:
+    if global_rank == 0:
         print(*args)
 
 
@@ -171,7 +171,8 @@ def safe_save_model_for_hf_trainer(trainer: transformers.Trainer,
 
         current_folder = output_dir.split('/')[-1]
         parent_folder = os.path.dirname(output_dir)
-        if trainer.args.local_rank == 0 or trainer.args.local_rank == -1:
+        # if trainer.args.local_rank == 0 or trainer.args.local_rank == -1:
+        if dist.get_rank() == 0:
             if current_folder.startswith('checkpoint-'):
                 mm_projector_folder = os.path.join(parent_folder, "mm_projector")
                 os.makedirs(mm_projector_folder, exist_ok=True)
@@ -203,10 +204,19 @@ def train():
     model_args, data_args, training_args = parser.parse_args_into_dataclasses()
     # debug
     training_args.gradient_checkpointing_kwargs = {"use_reentrant": False}
-    local_rank = training_args.local_rank
-    torch.cuda.set_device(local_rank)
-    device = torch.device("cuda", local_rank)
+    # local_rank = training_args.local_rank
     
+    if os.environ.get('SLURM_NTASKS'):
+        os.environ['RANK'] = os.environ['SLURM_PROCID']
+        os.environ['WORLD_SIZE'] = os.environ['SLURM_NTASKS']
+        os.environ['MASTER_PORT'] = os.environ['MASTER_PORT']
+        os.environ['LOCAL_RANK'] = os.environ['SLURM_LOCALID']
+        local_rank = int(os.environ['SLURM_LOCALID'])
+    
+    
+    print(f'local rank is: {local_rank}')
+    # torch.cuda.set_device(local_rank)
+    # device = torch.device("cuda", local_rank)
     deepspeed.init_distributed()
     
     
@@ -694,7 +704,8 @@ def train():
         non_lora_state_dict = get_peft_state_non_lora_maybe_zero_3(
             model.named_parameters()
         )
-        if training_args.local_rank == 0 or training_args.local_rank == -1:
+        # if training_args.local_rank == 0 or training_args.local_rank == -1:
+        if dist.get_rank() == 0:
             model.config.save_pretrained(training_args.output_dir)
             model.save_pretrained(training_args.output_dir, state_dict=state_dict)
             torch.save(non_lora_state_dict, os.path.join(training_args.output_dir, 'non_lora_trainables.bin'))

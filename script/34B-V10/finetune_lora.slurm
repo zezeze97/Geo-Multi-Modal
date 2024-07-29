@@ -1,7 +1,7 @@
 #!/bin/bash
 #SBATCH -o job.%j.out
 #SBATCH --partition=GPU80G
-#SBATCH --qos=low
+#SBATCH --qos=normal
 #SBATCH -J 34B-V10
 #SBATCH --nodes=1    
 #SBATCH --ntasks=4    
@@ -40,7 +40,7 @@ mkdir -p checkpoints/checkpoints-$MODEL_TYPE/$OUTPUT_DIR
 #  --vision_tower_pretrained_local_path checkpoints/checkpoints-qwen2/bunny-qwen2-caption-formalgeo-construction-cdl-and-image_cdl-0.5B-merged \
 export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True 
 # 
-deepspeed --num_gpus 4 --num_nodes 1 --launcher SLURM --hostfile ./hostfile --master_addr $MASTER_ADDR --master_port $MASTER_PORT  bunny/train/train_multiNode.py \
+deepspeed --num_nodes 1 --launcher SLURM --hostfile ./hostfile --master_addr $MASTER_ADDR --master_port $MASTER_PORT  bunny/train/train.py \
     --lora_enable True --lora_r 128 --lora_alpha 256 --mm_projector_lr 1e-5 \
     --deepspeed ./script/deepspeed/zero3.json \
     --model_name_or_path 01-ai/Yi-1.5-34B-Chat \
@@ -68,7 +68,7 @@ deepspeed --num_gpus 4 --num_nodes 1 --launcher SLURM --hostfile ./hostfile --ma
     --gradient_accumulation_steps 4 \
     --evaluation_strategy "no" \
     --save_strategy "steps" \
-    --save_steps 500 \
+    --save_steps 100 \
     --save_total_limit 1 \
     --learning_rate 1e-4 \
     --weight_decay 0. \

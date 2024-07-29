@@ -143,8 +143,8 @@ def calculate_accuracy(args):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--ground_truth_path", type=str, default="/research/zhangzr/Bunny/data/formalgeo7k/formalgeo7k_v2/problems")
-    parser.add_argument("--predictions_file", type=str, default="/research/zhangzr/Bunny/outputs/bunny-yi1.5-9B-Chat-FormalGeoCoT-WoAlignment-Sft1e/formalgeo_test_q2cdl_and_ans_merged.jsonl")
+    parser.add_argument("--ground_truth_path", type=str, default="data/formalgeo7k/formalgeo7k_v2/problems")
+    parser.add_argument("--predictions_file", type=str, default=None)
     parser.add_argument("--save_correct_wrong", action="store_true")
     parser.add_argument("--choice_mode", action='store_true')
     args = parser.parse_args()
