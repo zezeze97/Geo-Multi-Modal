@@ -14,6 +14,7 @@ from bunny.util.data_aug import crop
 from PIL import Image
 import math
 import re
+import numpy as np
 
 
 def parse_cdl(input_string):
@@ -108,6 +109,8 @@ def eval_model(args):
                 image = crop(image)
             if recong_model.config.image_aspect_ratio == 'pad':
                 image = expand2square(image, (255, 255, 255))
+            if args.without_diagram:
+                image = Image.fromarray(np.ones((384, 384, 3), dtype=np.uint8) * 255)
             
             recong_image_tensor = recong_image_processor.preprocess(image, return_tensors='pt')['pixel_values'][0]
             
@@ -233,6 +236,8 @@ def eval_model(args):
                 # print('using pad')
                 # image = expand2square(image, tuple(int(x * 255) for x in image_processor.image_mean))
                 image = expand2square(image, (255, 255, 255))
+            if args.without_diagram:
+                image = Image.fromarray(np.ones((384, 384, 3), dtype=np.uint8) * 255)
             image_tensor = image_processor.preprocess(image, return_tensors='pt')['pixel_values'][0]
             
             stop_str = conv.sep if conv.sep_style != SeparatorStyle.TWO else conv.sep2
@@ -297,7 +302,7 @@ if __name__ == "__main__":
     parser.add_argument('--recong-model-vision_encoder_path', type=str, default=None)
     parser.add_argument("--recong-conv-mode", type=str, default=None)
     parser.add_argument("--process-meta-qs-mode", type=str, default=None)
-    
+    parser.add_argument("--without_diagram", action='store_true')
     args = parser.parse_args()
 
     eval_model(args)
