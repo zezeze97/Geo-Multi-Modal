@@ -204,7 +204,7 @@ def train():
     model_args, data_args, training_args = parser.parse_args_into_dataclasses()
     # debug
     training_args.gradient_checkpointing_kwargs = {"use_reentrant": False}
-    # local_rank = training_args.local_rank
+    local_rank = training_args.local_rank
     
     if os.environ.get('SLURM_NTASKS'):
         os.environ['RANK'] = os.environ['SLURM_PROCID']
