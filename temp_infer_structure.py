@@ -32,12 +32,14 @@ torch.set_default_device(device)
 
 # create model
 model = AutoModelForCausalLM.from_pretrained(
-    'checkpoints/publish/GeoFormalizer',
+    # 'checkpoints/publish/GeoFormalizer',
+    'NaughtyDog97/GeoFormalizer',
     torch_dtype=torch.float16, # float32 for cpu
     device_map='auto',
     trust_remote_code=True)
 tokenizer = AutoTokenizer.from_pretrained(
-    'checkpoints/publish/GeoFormalizer',
+    # 'checkpoints/publish/GeoFormalizer',
+    'NaughtyDog97/GeoFormalizer',
     use_fast=True,
     padding_side="right",
     trust_remote_code=True)
