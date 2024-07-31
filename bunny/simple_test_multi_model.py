@@ -56,7 +56,7 @@ def expand2square(pil_img, background_color):
 
 
 def cascade_prediction(recong_tokenizer, recong_model, recong_image_processor, recong_conv_mode,
-                       tokenizer, model, image_processor, conv_mode, img_path, qs, qa_mode, crop, consCDL=None, imgCDL=None, temperature=0, num_beams=1, top_p=None):
+                       tokenizer, model, image_processor, conv_mode, img_path, qs, qa_mode, crop_image, consCDL=None, imgCDL=None, temperature=0, num_beams=1, top_p=None):
     '''
     qs是原始问题, 不包含任何格式
     qa_mode: q2ans, q2cdl_ans, q_cdl2ans, q_predcdl2ans, q_predcdl2cdl_ans
@@ -65,7 +65,7 @@ def cascade_prediction(recong_tokenizer, recong_model, recong_image_processor, r
     pred_consCDL = ''
     pred_imgCDL = ''
     image = Image.open(img_path).convert('RGB')
-    if crop:
+    if crop_image:
         image = crop(image)
     assert recong_model.config.image_aspect_ratio == model.config.image_aspect_ratio
     if model.config.image_aspect_ratio == 'pad':
@@ -193,4 +193,4 @@ if __name__ == '__main__':
     
     
     cascade_prediction(recong_tokenizer, recong_model, recong_image_processor, recong_conv_mode,
-                       tokenizer, model, image_processor, conv_mode, img_path, qs, qa_mode, crop, consCDL=None, imgCDL=None, temperature=0, num_beams=1, top_p=None)
+                       tokenizer, model, image_processor, conv_mode, img_path, qs, qa_mode, crop_image=True, consCDL=None, imgCDL=None, temperature=0, num_beams=1, top_p=None)
