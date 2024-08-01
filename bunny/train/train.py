@@ -21,10 +21,11 @@ import numpy as np
 from eval.evaluation_formalgeo.utils import getConsCdlAcc
 
 local_rank = None
+global_rank = None
 
 
 def rank0_print(*args):
-    if local_rank == 0:
+    if global_rank == 0:
         print(*args)
 
 
@@ -203,6 +204,10 @@ def train():
     # debug
     training_args.gradient_checkpointing_kwargs = {"use_reentrant": False}
     local_rank = training_args.local_rank
+    print(f'local rank is: {local_rank}')
+    # 获取 global rank
+    global_rank = dist.get_rank()
+    print(f'global rank is {global_rank}')
     compute_dtype = (torch.float16 if training_args.fp16 else (torch.bfloat16 if training_args.bf16 else torch.float32))
 
     bnb_model_from_pretrained_args = {}
@@ -458,7 +463,7 @@ def train():
         conversation_lib.default_conversation = conversation_lib.conv_templates["default"]
         
     # 准备vision encoder的ckpt， 针对zero3 debug， 只能初始化一次
-    if model_args.vision_tower_pretrained_local_path is not None and local_rank == 0:
+    if model_args.vision_tower_pretrained_local_path is not None and global_rank == 0:
         ckpt_path = model_args.vision_tower_pretrained_local_path
         state_dict = {}
         # find safetensors
@@ -499,7 +504,7 @@ def train():
     model.get_model().initialize_vision_modules(model_args=model_args)
     
     # 删除临时vision ckpt
-    if model_args.vision_tower_pretrained_local_path is not None and local_rank == 0:
+    if model_args.vision_tower_pretrained_local_path is not None and global_rank == 0:
         shutil.rmtree(model_args.vision_tower_pretrained_local_path)
     dist.barrier()
             

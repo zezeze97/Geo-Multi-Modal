@@ -4,37 +4,37 @@
 #SBATCH --qos=normal
 #SBATCH -J 9B-S2-Alignmnet
 #SBATCH --nodes=2    
-#SBATCH --ntasks=8  
-#SBATCH --cpus-per-task=16 
+#SBATCH --ntasks-per-node=1          # crucial - only 1 task per dist per node!
+#SBATCH --cpus-per-task=64           # number of cores per tasks
 #SBATCH --gres=gpu:4  
 #SBATCH --time=5-00:00:00
-
+export GPUS_PER_NODE=4
+export OMP_NUM_THREADS=64
 module load cuda/11.8
 module load gcc/12.2.0
 module load openmpi
 export SLURM_MPI_TYPE=pmi2
 export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True 
 export NCCL_IB_DISABLE=1
-export GPUS_PER_NODE=4
+export NCCL_SOCKET_IFNAME=eno
+export NCCL_P2P_LEVEL=NVL
 export MASTER_ADDR=$(scontrol show hostnames $SLURM_JOB_NODELIST | head -n 1)
-export MASTER_PORT=9911
+export MASTER_PORT=9905
 
+# export NCCL_DEBUG=INFO
+# export DEEPSPEED_LOG_LEVEL=DEBUG
 
-#replaces the content of hostfile every time
-function makehostfile() {
-perl -e '$slots=split /,/, $ENV{"SLURM_STEP_GPUS"};
-$slots=4 if $slots==0; # workaround 8 gpu machines
-@nodes = split /\n/, qx[scontrol show hostnames $ENV{"SLURM_JOB_NODELIST"}];
-print map { "$b$_ slots=$slots\n" } @nodes'
-}
-makehostfile > hostfile
+echo $NCCL_SOCKET_IFNAME
 
 
 
-MODEL_TYPE=yi1.5
-OUTPUT_DIR=bunny-$MODEL_TYPE-9B-Chat-VisionPretrained-S2
-deepspeed --num_nodes 2 --hostfile ./hostfile --master_addr $MASTER_ADDR --master_port $MASTER_PORT  --launcher SLURM \
-     bunny/train/train_multiNode.py \
+export MODEL_TYPE=yi1.5
+export OUTPUT_DIR=bunny-$MODEL_TYPE-9B-Chat-VisionPretrained-S2
+mkdir -p checkpoints/checkpoints-pretrain/$OUTPUT_DIR
+
+srun --jobid $SLURM_JOBID bash -c 'python -m torch.distributed.run \
+    --nproc_per_node $GPUS_PER_NODE --nnodes $SLURM_NNODES --node_rank $SLURM_PROCID \
+    --master_addr $MASTER_ADDR --master_port $MASTER_PORT bunny/train/train.py \
     --deepspeed ./script/deepspeed/zero3.json \
     --model_name_or_path 01-ai/Yi-1.5-9B-Chat \
     --model_type $MODEL_TYPE \
@@ -74,4 +74,5 @@ deepspeed --num_nodes 2 --hostfile ./hostfile --master_addr $MASTER_ADDR --maste
     --gradient_checkpointing True \
     --dataloader_num_workers 4 \
     --lazy_preprocess True \
-    --report_to "tensorboard" | tee 2>&1 checkpoints/checkpoints-pretrain/$OUTPUT_DIR/log.txt
+    --report_to "tensorboard" | tee 2>&1 checkpoints/checkpoints-pretrain/$OUTPUT_DIR/log.txt'
+    
