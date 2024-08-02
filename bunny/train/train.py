@@ -196,6 +196,7 @@ def safe_save_model_for_hf_trainer(trainer: transformers.Trainer,
 
 def train():
     global local_rank
+    global global_rank
     # debug?
     # torch.set_num_threads(1)
 

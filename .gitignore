@@ -5,6 +5,7 @@ checkpoints/
 outputs/
 nohup.out
 data/
+data_backup/
 gradio-logs/
 *.log
 *.out

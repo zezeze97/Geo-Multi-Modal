@@ -1,23 +1,42 @@
 #!/bin/bash
-# only for 4090
-# export NCCL_P2P_DISABLE=1
-# export NCCL_IB_DISABLE=1
-export HF_ENDPOINT=https://hf-mirror.com
+#SBATCH -o job.%j.out
+#SBATCH --partition=GPU80G
+#SBATCH --qos=low
+#SBATCH -J 9B-V15
+#SBATCH --nodes=2    
+#SBATCH --ntasks-per-node=1          # crucial - only 1 task per dist per node!
+#SBATCH --cpus-per-task=64           # number of cores per tasks
+#SBATCH --gres=gpu:4  
+#SBATCH --time=5-00:00:00
+export GPUS_PER_NODE=4
+export OMP_NUM_THREADS=64
+module load cuda/11.8
+module load gcc/12.2.0
+module load openmpi
+export SLURM_MPI_TYPE=pmi2
+export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True 
+export NCCL_IB_DISABLE=1
+export NCCL_SOCKET_IFNAME=eno
+export NCCL_P2P_LEVEL=NVL
+export MASTER_ADDR=$(scontrol show hostnames $SLURM_JOB_NODELIST | head -n 1)
+export MASTER_PORT=9906
 
-# export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True 
+# export NCCL_DEBUG=INFO
+# export DEEPSPEED_LOG_LEVEL=DEBUG
 
-MODEL_TYPE=yi1.5
+echo $NCCL_SOCKET_IFNAME
 
-PRETRAIN_DIR=bunny-$MODEL_TYPE-9B-Chat-VisionPretrained-v7-1epoch
-# --use_s2 \
-# --vision_tower_pretrained_local_path checkpoints/checkpoints-qwen2/bunny-qwen2-caption-formalgeo-construction-cdl-and-image_cdl-0.5B-merged \
-# 
-# --vision_tower_pretrained_local_path checkpoints/checkpoints-qwen2/bunny-lora-qwen2-qa-FormalGeoV2Aug10Times_structure_only-sft2/merged \
 
-OUTPUT_DIR=bunny-$MODEL_TYPE-9B-Chat-FormalGeoCoT-VisionPretrained-sft2e-v12
+export MODEL_TYPE=yi1.5
 
+export PRETRAIN_DIR=bunny-$MODEL_TYPE-9B-Chat-VisionPretrained-v7-1epoch
+export OUTPUT_DIR=bunny-$MODEL_TYPE-9B-Chat-FormalGeoCoT-VisionPretrained-sft1e-v15
 mkdir -p checkpoints/checkpoints-$MODEL_TYPE/$OUTPUT_DIR
-deepspeed --include=localhost:0,1,2,3,4,5,6,7 --master_port 25679 bunny/train/train.py \
+
+
+srun --jobid $SLURM_JOBID bash -c 'python -m torch.distributed.run \
+--nproc_per_node $GPUS_PER_NODE --nnodes $SLURM_NNODES --node_rank $SLURM_PROCID \
+--master_addr $MASTER_ADDR --master_port $MASTER_PORT bunny/train/train.py \
     --deepspeed ./script/deepspeed/zero3.json \
     --model_name_or_path 01-ai/Yi-1.5-9B-Chat \
     --model_type $MODEL_TYPE \
@@ -25,8 +44,8 @@ deepspeed --include=localhost:0,1,2,3,4,5,6,7 --master_port 25679 bunny/train/tr
     --add_formal_tokens False \
     --force_tune_embedding False \
     --version yi-chat \
-    --data_path data/formalgeo7k/formalgeo7k_v2/custom_json/qa_mixTask/qa_mix_train_v12.json \
-    --image_folder data/formalgeo7k/formalgeo7k_v2 \
+    --data_path data_backup/formalgeo7k/formalgeo7k_v2/custom_json/qa_mixTask/qa_mix_train_v15.json \
+    --image_folder data_backup/formalgeo7k/formalgeo7k_v2 \
     --customized_aug True \
     --vision_tower google/siglip-so400m-patch14-384 \
     --vision_tower_pretrained_local_path checkpoints/checkpoints-qwen2/bunny-lora-qwen2-qa-FormalGeoV2Aug10Times_calibrate_structure_only-sft4-add05/merged \
@@ -38,7 +57,7 @@ deepspeed --include=localhost:0,1,2,3,4,5,6,7 --master_port 25679 bunny/train/tr
     --group_by_modality_length True \
     --bf16 True \
     --output_dir checkpoints/checkpoints-$MODEL_TYPE/$OUTPUT_DIR \
-    --num_train_epochs 2 \
+    --num_train_epochs 1 \
     --per_device_train_batch_size 8 \
     --per_device_eval_batch_size 1 \
     --gradient_accumulation_steps 2 \
@@ -57,6 +76,4 @@ deepspeed --include=localhost:0,1,2,3,4,5,6,7 --master_port 25679 bunny/train/tr
     --gradient_checkpointing True \
     --dataloader_num_workers 4 \
     --lazy_preprocess True \
-    --report_to "tensorboard" | tee 2>&1 checkpoints/checkpoints-$MODEL_TYPE/$OUTPUT_DIR/log.txt
-
-# sh zk.sh
+    --report_to "tensorboard" | tee 2>&1 checkpoints/checkpoints-$MODEL_TYPE/$OUTPUT_DIR/log.txt'

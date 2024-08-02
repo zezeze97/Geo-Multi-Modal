@@ -1,7 +1,7 @@
 #!/bin/bash
 #SBATCH -o job.%j.out
 #SBATCH --partition=GPU80G
-#SBATCH --qos=normal
+#SBATCH --qos=low
 #SBATCH -J 34B-S2-Alignmnet
 #SBATCH --nodes=2    
 #SBATCH --ntasks-per-node=1          # crucial - only 1 task per dist per node!

@@ -9,7 +9,7 @@
 #SBATCH --gres=gpu:4  
 #SBATCH --time=5-00:00:00
 export GPUS_PER_NODE=4
-
+export OMP_NUM_THREADS=64
 module load cuda/11.8
 module load gcc/12.2.0
 module load openmpi
@@ -19,7 +19,7 @@ export NCCL_IB_DISABLE=1
 export NCCL_SOCKET_IFNAME=eno
 export NCCL_P2P_LEVEL=NVL
 export MASTER_ADDR=$(scontrol show hostnames $SLURM_JOB_NODELIST | head -n 1)
-export MASTER_PORT=9906
+export MASTER_PORT=9907
 
 # export NCCL_DEBUG=INFO
 # export DEEPSPEED_LOG_LEVEL=DEBUG
@@ -30,7 +30,7 @@ echo $NCCL_SOCKET_IFNAME
 export MODEL_TYPE=yi1.5
 
 export PRETRAIN_DIR=bunny-$MODEL_TYPE-34B-Chat-VisionPretrained-v13-1epoch
-export OUTPUT_DIR=bunny-lora-128-$MODEL_TYPE-34B-Chat-FormalGeoCoT-VisionPretrained-sft2e-v16
+export OUTPUT_DIR=bunny-lora-128-$MODEL_TYPE-34B-Chat-FormalGeoCoT-VisionPretrained-sft1e-v16
 mkdir -p checkpoints/checkpoints-$MODEL_TYPE/$OUTPUT_DIR
 
 
@@ -45,8 +45,8 @@ bunny/train/train.py \
 --add_formal_tokens False \
 --force_tune_embedding False \
 --version yi-chat \
---data_path data/formalgeo7k/formalgeo7k_v2/custom_json/qa_mixTask/qa_mix_train_v16.json \
---image_folder data/formalgeo7k/formalgeo7k_v2 \
+--data_path data_backup/formalgeo7k/formalgeo7k_v2/custom_json/qa_mixTask/qa_mix_train_v16.json \
+--image_folder data_backup/formalgeo7k/formalgeo7k_v2 \
 --customized_aug True \
 --vision_tower google/siglip-so400m-patch14-384 \
 --vision_tower_pretrained_local_path checkpoints/checkpoints-qwen2/bunny-lora-qwen2-qa-FormalGeoV2Aug10Times_calibrate_structure_only-sft4-add05/merged \
@@ -58,10 +58,10 @@ bunny/train/train.py \
 --group_by_modality_length False \
 --bf16 True \
 --output_dir checkpoints/checkpoints-$MODEL_TYPE/$OUTPUT_DIR \
---num_train_epochs 2 \
+--num_train_epochs 1 \
 --per_device_train_batch_size 8 \
 --per_device_eval_batch_size 1 \
---gradient_accumulation_steps 4 \
+--gradient_accumulation_steps 2 \
 --evaluation_strategy "no" \
 --save_strategy "steps" \
 --save_steps 500 \
