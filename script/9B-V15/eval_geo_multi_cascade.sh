@@ -3,9 +3,9 @@ question_file=$1
 qa_mode=$2
 
 # Assign the command line arguments to variables
-N=8
-base_answer_path="./outputs/report/bunny-yi1.5-9B-Chat-FormalGeoCoT-VisionPretrained-sft2e-v12/${question_file}_${qa_mode}"
-gpus=(0, 1, 2, 3, 4, 5, 6, 7)  # Define the GPU IDs array
+N=4
+base_answer_path="./outputs/report/bunny-yi1.5-9B-Chat-FormalGeoCoT-VisionPretrained-sft1e-v15/${question_file}_${qa_mode}"
+gpus=(0, 1, 2, 3)  # Define the GPU IDs array
 
 
 # Loop over each chunk/process
@@ -20,13 +20,13 @@ do
     # --vision_encoder_path checkpoints/checkpoints-yi1.5/bunny-yi1.5-9B-rerun \
     # 
     CUDA_VISIBLE_DEVICES="${gpus[chunk_id]}" python bunny/eval/model_vqa.py --model-type yi1.5 \
-                                                                     --model-path checkpoints/checkpoints-yi1.5/bunny-yi1.5-9B-Chat-FormalGeoCoT-VisionPretrained-sft2e-v12 \
-                                                                     --vision_encoder_path checkpoints/checkpoints-yi1.5/bunny-yi1.5-9B-Chat-FormalGeoCoT-VisionPretrained-sft2e-v12 \
-                                                                     --question-file data/formalgeo7k/formalgeo7k_v2/custom_json/qa_resoning/geoqa_test/${question_file}.jsonl \
+                                                                     --model-path checkpoints/checkpoints-yi1.5/bunny-yi1.5-9B-Chat-FormalGeoCoT-VisionPretrained-sft1e-v15 \
+                                                                     --vision_encoder_path checkpoints/checkpoints-yi1.5/bunny-yi1.5-9B-Chat-FormalGeoCoT-VisionPretrained-sft1e-v15 \
+                                                                     --question-file data_backup/formalgeo7k/formalgeo7k_v2/custom_json/qa_resoning/geoqa_test/${question_file}.jsonl \
                                                                      --answers-file "$answer_path" \
                                                                      --num-chunks "$N" \
                                                                      --chunk-idx "$chunk_id" \
-                                                                     --image-folder data/formalgeo7k/formalgeo7k_v2 \
+                                                                     --image-folder data_backup/formalgeo7k/formalgeo7k_v2 \
                                                                      --temperature 0 \
                                                                      --num-beams 1 \
                                                                      --crop \

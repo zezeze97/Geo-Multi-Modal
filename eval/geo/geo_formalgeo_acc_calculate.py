@@ -143,7 +143,7 @@ def calculate_accuracy(args):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--ground_truth_path", type=str, default="data/formalgeo7k/formalgeo7k_v2/problems")
+    parser.add_argument("--ground_truth_path", type=str, default="data_backup/formalgeo7k/formalgeo7k_v2/problems")
     parser.add_argument("--predictions_file", type=str, default=None)
     parser.add_argument("--save_correct_wrong", action="store_true")
     parser.add_argument("--choice_mode", action='store_true')

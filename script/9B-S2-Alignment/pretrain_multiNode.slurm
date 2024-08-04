@@ -42,8 +42,8 @@ srun --jobid $SLURM_JOBID bash -c 'python -m torch.distributed.run \
     --add_formal_tokens False \
     --force_tune_embedding False \
     --version yi-chat \
-    --data_path data/formalgeo7k/formalgeo7k_v2/custom_json/qa_structure_only/qa_structure_only_train_aug10times_calibrate_en.json \
-    --image_folder data/formalgeo7k/formalgeo7k_v2 \
+    --data_path data_backup/formalgeo7k/formalgeo7k_v2/custom_json/qa_structure_only/qa_structure_only_train_aug10times_calibrate_en.json \
+    --image_folder data_backup/formalgeo7k/formalgeo7k_v2 \
     --customized_aug True \
     --vision_tower google/siglip-so400m-patch14-384 \
     --vision_tower_pretrained_local_path checkpoints/checkpoints-qwen2/bunny-lora-qwen2-qa-FormalGeoV2Aug10Times_calibrate_structure_only-sft4-add05/merged \
