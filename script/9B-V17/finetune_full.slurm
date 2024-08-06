@@ -30,7 +30,7 @@ echo $NCCL_SOCKET_IFNAME
 export MODEL_TYPE=yi1.5
 
 export PRETRAIN_DIR=bunny-$MODEL_TYPE-9B-Chat-VisionPretrained-v7-1epoch
-export OUTPUT_DIR=bunny-$MODEL_TYPE-9B-Chat-FormalGeoCoT-VisionPretrained-sft2e-v17
+export OUTPUT_DIR=bunny-$MODEL_TYPE-9B-Chat-FormalGeoCoT-VisionPretrained-sft1e-v17
 mkdir -p checkpoints/checkpoints-$MODEL_TYPE/$OUTPUT_DIR
 
 
@@ -57,7 +57,7 @@ srun --jobid $SLURM_JOBID bash -c 'python -m torch.distributed.run \
     --group_by_modality_length True \
     --bf16 True \
     --output_dir checkpoints/checkpoints-$MODEL_TYPE/$OUTPUT_DIR \
-    --num_train_epochs 2 \
+    --num_train_epochs 1 \
     --per_device_train_batch_size 8 \
     --per_device_eval_batch_size 1 \
     --gradient_accumulation_steps 2 \
