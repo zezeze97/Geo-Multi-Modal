@@ -1,7 +1,7 @@
 #!/bin/bash
 #SBATCH -o job.%j.out
 #SBATCH --partition=GPU80G
-#SBATCH --qos=low
+#SBATCH --qos=high
 #SBATCH -J Eval-9B-V15
 #SBATCH --nodes=1    
 #SBATCH --ntasks-per-node=1          # crucial - only 1 task per dist per node!
@@ -23,4 +23,4 @@ sh script/9B-V15/eval_geo_multi_cascade.sh formalgeo_test_geoqa_qs_meta Q+PredCD
 sh script/9B-V15/eval_geo_multi_cascade.sh formalgeo_test_geoqa_qs_meta_choice Q+PredCDL2Ans > eval_logs/9B-V15//cascade_q_and_Predcdl2ans_choice.log 2>&1
 sh script/9B-V15/eval_geo_multi_cascade.sh formalgeo_test_geoqa_qs_meta Q+PredCDL2CalibrateCDLandAns > eval_logs/9B-V15/cascade_q_and_Predcdl2cdl_and_ans.log 2>&1
 sh script/9B-V15/eval_geo_multi_cascade.sh formalgeo_test_geoqa_qs_meta_choice Q+PredCDL2CalibrateCDLandAns > eval_logs/9B-V15/cascade_q_and_Predcdl2cdl_and_ans_choice.log 2>&1
-sh script/9B-V15/eval_geo_translate_multi.sh > eval_logs/9B-V15/translate.log 2>&1
+# sh script/9B-V15/eval_geo_translate_multi.sh > eval_logs/9B-V15/translate.log 2>&1
