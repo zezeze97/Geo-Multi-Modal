@@ -138,7 +138,7 @@ if __name__ == '__main__':
     import argparse
     parser = argparse.ArgumentParser()
     parser.add_argument('--prediction', type=str)
-    parser.add_argument('--gt-path', default='data/formalgeo7k/formalgeo7k_v2/problems')
+    parser.add_argument('--gt-path', default='data_backup/formalgeo7k/formalgeo7k_v2/problems')
     args = parser.parse_args()
     
     getScore(args.prediction, args.gt_path)

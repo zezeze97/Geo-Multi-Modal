@@ -1,8 +1,8 @@
 #!/bin/bash
 #SBATCH -o job.%j.out
 #SBATCH --partition=GPU80G
-#SBATCH --qos=normal
-#SBATCH -J 9B-V18
+#SBATCH --qos=low
+#SBATCH -J 9B-V17-Unfreeze
 #SBATCH --nodes=2    
 #SBATCH --ntasks-per-node=1          # crucial - only 1 task per dist per node!
 #SBATCH --cpus-per-task=64           # number of cores per tasks
@@ -19,7 +19,7 @@ export NCCL_IB_DISABLE=1
 export NCCL_SOCKET_IFNAME=eno
 export NCCL_P2P_LEVEL=NVL
 export MASTER_ADDR=$(scontrol show hostnames $SLURM_JOB_NODELIST | head -n 1)
-export MASTER_PORT=9908
+export MASTER_PORT=9906
 
 # export NCCL_DEBUG=INFO
 # export DEEPSPEED_LOG_LEVEL=DEBUG
@@ -30,7 +30,7 @@ echo $NCCL_SOCKET_IFNAME
 export MODEL_TYPE=yi1.5
 
 export PRETRAIN_DIR=bunny-$MODEL_TYPE-9B-Chat-VisionPretrained-v7-1epoch
-export OUTPUT_DIR=bunny-$MODEL_TYPE-9B-Chat-FormalGeoCoT-VisionPretrained-sft1e-v18
+export OUTPUT_DIR=bunny-$MODEL_TYPE-9B-Chat-FormalGeoCoT-VisionPretrained-sft1e-v17
 mkdir -p checkpoints/checkpoints-$MODEL_TYPE/$OUTPUT_DIR
 
 
@@ -44,13 +44,13 @@ srun --jobid $SLURM_JOBID bash -c 'python -m torch.distributed.run \
     --add_formal_tokens False \
     --force_tune_embedding False \
     --version yi-chat \
-    --data_path data_backup/formalgeo7k/formalgeo7k_v2/custom_json/qa_mixTask/qa_mix_train_v18.json \
+    --data_path data_backup/formalgeo7k/formalgeo7k_v2/custom_json/qa_resoning/v2/formalgeov2_aug_train_data.json \
     --image_folder data_backup/formalgeo7k/formalgeo7k_v2 \
     --customized_aug True \
     --vision_tower google/siglip-so400m-patch14-384 \
     --vision_tower_pretrained_local_path checkpoints/checkpoints-qwen2/bunny-lora-qwen2-qa-FormalGeoV2Aug10Times_calibrate_structure_only-sft4-add05/merged \
     --pretrain_mm_mlp_adapter checkpoints/checkpoints-pretrain/$PRETRAIN_DIR/mm_projector.bin \
-    --freeze_vision_tower True \
+    --freeze_vision_tower False \
     --tune_vision_tower False \
     --mm_projector_type mlp2x_gelu \
     --image_aspect_ratio pad \

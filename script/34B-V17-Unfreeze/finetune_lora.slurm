@@ -2,7 +2,7 @@
 #SBATCH -o job.%j.out
 #SBATCH --partition=GPU80G
 #SBATCH --qos=normal
-#SBATCH -J 34B-V17
+#SBATCH -J 34B-V17-Unfreeze
 #SBATCH --nodes=2    
 #SBATCH --ntasks-per-node=1          # crucial - only 1 task per dist per node!
 #SBATCH --cpus-per-task=64           # number of cores per tasks
@@ -51,7 +51,7 @@ bunny/train/train.py \
 --vision_tower google/siglip-so400m-patch14-384 \
 --vision_tower_pretrained_local_path checkpoints/checkpoints-qwen2/bunny-lora-qwen2-qa-FormalGeoV2Aug10Times_calibrate_structure_only-sft4-add05/merged \
 --pretrain_mm_mlp_adapter checkpoints/checkpoints-pretrain/$PRETRAIN_DIR/mm_projector.bin \
---freeze_vision_tower True \
+--freeze_vision_tower False \
 --tune_vision_tower False \
 --mm_projector_type mlp2x_gelu \
 --image_aspect_ratio pad \
