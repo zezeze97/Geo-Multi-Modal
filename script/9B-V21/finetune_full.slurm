@@ -1,8 +1,8 @@
 #!/bin/bash
 #SBATCH -o job.%j.out
 #SBATCH --partition=GPU80G
-#SBATCH --qos=normal
-#SBATCH -J 9B-V20
+#SBATCH --qos=low
+#SBATCH -J 9B-V21
 #SBATCH --nodes=2    
 #SBATCH --ntasks-per-node=1          # crucial - only 1 task per dist per node!
 #SBATCH --cpus-per-task=64           # number of cores per tasks
@@ -30,7 +30,7 @@ echo $NCCL_SOCKET_IFNAME
 export MODEL_TYPE=yi1.5
 
 export PRETRAIN_DIR=bunny-$MODEL_TYPE-9B-Chat-VisionPretrained-v7-1epoch
-export OUTPUT_DIR=bunny-$MODEL_TYPE-9B-Chat-FormalGeoCoT-VisionPretrained-sft1e-v20
+export OUTPUT_DIR=bunny-$MODEL_TYPE-9B-Chat-FormalGeoCoT-VisionPretrained-sft1e-v21
 mkdir -p checkpoints/checkpoints-$MODEL_TYPE/$OUTPUT_DIR
 
 
@@ -44,7 +44,7 @@ srun --jobid $SLURM_JOBID bash -c 'python -m torch.distributed.run \
     --add_formal_tokens False \
     --force_tune_embedding False \
     --version yi-chat \
-    --data_path data_backup/formalgeo7k/formalgeo7k_v2/custom_json/qa_mixTask/qa_mix_train_v20.json \
+    --data_path data_backup/formalgeo7k/formalgeo7k_v2/custom_json/qa_mixTask/qa_mix_train_v21.json \
     --image_folder data_backup/formalgeo7k/formalgeo7k_v2 \
     --customized_aug True \
     --vision_tower google/siglip-so400m-patch14-384 \
