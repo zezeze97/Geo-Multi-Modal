@@ -5,8 +5,8 @@
 #SBATCH -J Eval-9B-V20
 #SBATCH --nodes=1    
 #SBATCH --ntasks-per-node=1          # crucial - only 1 task per dist per node!
-#SBATCH --cpus-per-task=64           # number of cores per tasks
-#SBATCH --gres=gpu:4  
+#SBATCH --cpus-per-task=32           # number of cores per tasks
+#SBATCH --gres=gpu:2  
 #SBATCH --time=5-00:00:00
 
 module load cuda/11.8
