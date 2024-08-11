@@ -3,7 +3,7 @@
 
 # Assign the command line arguments to variables
 N=4
-base_answer_path='./outputs/bunny-lora-128-yi1.5-34B-Chat-FormalGeoCoT-VisionPretrained-sft2e-v13/test_geoqa_translate'
+base_answer_path='./outputs/bunny-lora-128-yi1.5-34B-Chat-FormalGeoCoT-VisionPretrained-sft1e-v21/test_geoqa_translate'
 gpus=(0, 1, 2, 3)  # Define the GPU IDs array
 
 

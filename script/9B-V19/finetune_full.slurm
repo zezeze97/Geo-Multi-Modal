@@ -1,7 +1,7 @@
 #!/bin/bash
 #SBATCH -o job.%j.out
 #SBATCH --partition=GPU80G
-#SBATCH --qos=low
+#SBATCH --qos=normal
 #SBATCH -J 9B-V19
 #SBATCH --nodes=2    
 #SBATCH --ntasks-per-node=1          # crucial - only 1 task per dist per node!
@@ -19,7 +19,7 @@ export NCCL_IB_DISABLE=1
 export NCCL_SOCKET_IFNAME=eno
 export NCCL_P2P_LEVEL=NVL
 export MASTER_ADDR=$(scontrol show hostnames $SLURM_JOB_NODELIST | head -n 1)
-export MASTER_PORT=9908
+export MASTER_PORT=9910
 
 # export NCCL_DEBUG=INFO
 # export DEEPSPEED_LOG_LEVEL=DEBUG
