@@ -21,11 +21,11 @@ do
     CUDA_VISIBLE_DEVICES="${gpus[chunk_id]}" python bunny/eval/model_vqa.py --model-type yi1.5 \
                                                                      --model-path checkpoints/checkpoints-yi1.5/bunny-lora-128-yi1.5-34B-Chat-FormalGeoCoT-VisionPretrained-sft1e-v21/merged \
                                                                      --vision_encoder_path checkpoints/checkpoints-yi1.5/bunny-lora-128-yi1.5-34B-Chat-FormalGeoCoT-VisionPretrained-sft1e-v21/merged \
-                                                                     --question-file data/formalgeo7k/formalgeo7k_v2/custom_json/qa_resoning/test/${question_file}.jsonl \
+                                                                     --question-file data_backup/formalgeo7k/formalgeo7k_v2/custom_json/qa_resoning/test/${question_file}.jsonl \
                                                                      --answers-file "$answer_path" \
                                                                      --num-chunks "$N" \
                                                                      --chunk-idx "$chunk_id" \
-                                                                     --image-folder data/formalgeo7k/formalgeo7k_v2 \
+                                                                     --image-folder data_backup/formalgeo7k/formalgeo7k_v2 \
                                                                      --temperature 0 \
                                                                      --num-beams 1 \
                                                                      --crop \
