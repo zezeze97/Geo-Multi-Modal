@@ -1,9 +1,9 @@
 #!/bin/bash
-question_file=$1
+
 
 # Assign the command line arguments to variables
 N=4
-base_answer_path="./outputs/bunny-lora-128-yi1.5-34B-Chat-FormalGeoCoT-VisionPretrained-sft1e-v17/${question_file}"
+base_answer_path='./outputs/bunny-lora-128-yi1.5-34B-Chat-FormalGeoCoT-VisionPretrained-sft1e-v21/test_geoqa_translate'
 gpus=(0, 1, 2, 3)  # Define the GPU IDs array
 
 
@@ -14,20 +14,19 @@ do
     answer_path="${base_answer_path}_${chunk_id}.jsonl"
     if [ -f "$answer_path" ]; then
         rm "$answer_path"
-    fi
+    fi  
     # Run the Python program in the background
     # --vision_encoder_path checkpoints/checkpoints-yi1.5/bunny-yi1.5-9B-rerun \
     # 
     CUDA_VISIBLE_DEVICES="${gpus[chunk_id]}" python bunny/eval/model_vqa.py --model-type yi1.5 \
-                                                                     --model-path checkpoints/checkpoints-yi1.5/bunny-lora-128-yi1.5-34B-Chat-FormalGeoCoT-VisionPretrained-sft1e-v17/merged \
-                                                                     --vision_encoder_path checkpoints/checkpoints-yi1.5/bunny-lora-128-yi1.5-34B-Chat-FormalGeoCoT-VisionPretrained-sft1e-v17/merged \
-                                                                     --question-file data_backup/formalgeo7k/formalgeo7k_v2/custom_json/qa_resoning/test/${question_file}.jsonl \
+                                                                     --model-path checkpoints/checkpoints-yi1.5/bunny-lora-128-yi1.5-34B-Chat-FormalGeoCoT-VisionPretrained-sft2e-v13/merged \
+                                                                     --vision_encoder_path checkpoints/checkpoints-yi1.5/bunny-lora-128-yi1.5-34B-Chat-FormalGeoCoT-VisionPretrained-sft2e-v13/merged \
+                                                                     --question-file data/formalgeo7k/formalgeo7k_v2/custom_json/qa_translate/formalgeo_test_geoqa_translate_qs.jsonl \
                                                                      --answers-file "$answer_path" \
                                                                      --num-chunks "$N" \
                                                                      --chunk-idx "$chunk_id" \
-                                                                     --image-folder data_backup/formalgeo7k/formalgeo7k_v2 \
+                                                                     --image-folder data/formalgeo7k/formalgeo7k_v2 \
                                                                      --temperature 0 \
-                                                                     --num-beams 1 \
                                                                      --crop \
                                                                      --conv-mode yi-chat &
 
@@ -57,11 +56,5 @@ do
         rm "$answer_path"
     fi
 done
-# 判断 question_file 变量是否包含 "choice"
-if [[ "$question_file" == *"choice"* ]]; then
-    # 如果包含 "choice"，使用带 --choice_mode 参数的命令
-    python eval/geo/geo_formalgeo_acc_calculate.py --predictions_file "$merged_file" --save_correct_wrong --choice_mode
-else
-    # 如果不包含 "choice"，使用不带 --choice_mode 参数的命令
-    python eval/geo/geo_formalgeo_acc_calculate.py --predictions_file "$merged_file" --save_correct_wrong
-fi
+python eval/evaluation_formalgeo/eval_construction_cdl_and_image_cdl.py --prediction "$merged_file"
+                                    
