@@ -5,8 +5,8 @@
 #SBATCH -J Eval-34B-V17
 #SBATCH --nodes=1    
 #SBATCH --ntasks-per-node=1          # crucial - only 1 task per dist per node!
-#SBATCH --cpus-per-task=64           # number of cores per tasks
-#SBATCH --gres=gpu:4  
+#SBATCH --cpus-per-task=16           # number of cores per tasks
+#SBATCH --gres=gpu:3  
 #SBATCH --time=5-00:00:00
 
 module load cuda/11.8
@@ -14,7 +14,7 @@ module load gcc/12.2.0
 module load openmpi
 
 
-CUDA_VISIBLE_DEVICES=0 python script/merge_lora_weights.py --model-path checkpoints/checkpoints-yi1.5/bunny-lora-128-yi1.5-34B-Chat-FormalGeoCoT-VisionPretrained-sft1e-v17 \
+python script/merge_lora_weights.py --model-path checkpoints/checkpoints-yi1.5/bunny-lora-128-yi1.5-34B-Chat-FormalGeoCoT-VisionPretrained-sft1e-v17 \
                                     --model-base 01-ai/Yi-1.5-34B-Chat \
                                     --model-type yi1.5 \
                                     --vision-encoder-path checkpoints/checkpoints-qwen2/bunny-lora-qwen2-qa-FormalGeoV2Aug10Times_calibrate_structure_only-sft4-add05/merged \

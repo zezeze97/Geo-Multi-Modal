@@ -2,9 +2,9 @@
 question_file=$1
 
 # Assign the command line arguments to variables
-N=3
-base_answer_path="./outputs/bunny-lora-128-yi1.5-34B-Chat-FormalGeoCoT-VisionPretrained-sft1e-v17/${question_file}"
-gpus=(0, 1, 2)  # Define the GPU IDs array
+N=4
+base_answer_path="./outputs/report/bunny-yi1.5-9B-Chat-FormalGeoCoT-VisionPretrained-sft1e-v20-withoutDiagram/${question_file}"
+gpus=(0, 1, 2, 3)  # Define the GPU IDs array
 
 
 # Loop over each chunk/process
@@ -19,8 +19,8 @@ do
     # --vision_encoder_path checkpoints/checkpoints-yi1.5/bunny-yi1.5-9B-rerun \
     # 
     CUDA_VISIBLE_DEVICES="${gpus[chunk_id]}" python bunny/eval/model_vqa.py --model-type yi1.5 \
-                                                                     --model-path checkpoints/checkpoints-yi1.5/bunny-lora-128-yi1.5-34B-Chat-FormalGeoCoT-VisionPretrained-sft1e-v17/merged \
-                                                                     --vision_encoder_path checkpoints/checkpoints-yi1.5/bunny-lora-128-yi1.5-34B-Chat-FormalGeoCoT-VisionPretrained-sft1e-v17/merged \
+                                                                     --model-path checkpoints/checkpoints-yi1.5/bunny-yi1.5-9B-Chat-FormalGeoCoT-VisionPretrained-sft1e-v20 \
+                                                                     --vision_encoder_path checkpoints/checkpoints-yi1.5/bunny-yi1.5-9B-Chat-FormalGeoCoT-VisionPretrained-sft1e-v20 \
                                                                      --question-file data_backup/formalgeo7k/formalgeo7k_v2/custom_json/qa_resoning/test/${question_file}.jsonl \
                                                                      --answers-file "$answer_path" \
                                                                      --num-chunks "$N" \
@@ -29,6 +29,7 @@ do
                                                                      --temperature 0 \
                                                                      --num-beams 1 \
                                                                      --crop \
+                                                                     --without_diagram \
                                                                      --conv-mode yi-chat &
 
     # Uncomment below if you need a slight delay between starting each process
