@@ -9,6 +9,7 @@ from util.mm_utils import tokenizer_image_token
 from constants import IMAGE_TOKEN_INDEX, DEFAULT_IMAGE_TOKEN
 from util.data_aug import crop
 import re
+from transformers import TextStreamer
 
 def parse_cdl(input_string):
     # 使用正则表达式查找各个部分
@@ -82,6 +83,7 @@ def cascade_prediction(recong_tokenizer, recong_model, recong_image_processor, r
         recong_input_ids = tokenizer_image_token(recong_prompt, recong_tokenizer, IMAGE_TOKEN_INDEX, return_tensors='pt').unsqueeze(0).cuda()
         recong_image_tensor = recong_image_processor.preprocess(image, return_tensors='pt')['pixel_values'][0]
         recong_stop_str = recong_conv.sep if recong_conv.sep_style != SeparatorStyle.TWO else recong_conv.sep2
+        recong_streaner = TextStreamer(recong_tokenizer, skip_prompt=True, skip_special_tokens=True)
         # 进行结构识别
         with torch.inference_mode():
             recong_output_ids = recong_model.generate(
@@ -96,14 +98,15 @@ def cascade_prediction(recong_tokenizer, recong_model, recong_image_processor, r
                 max_new_tokens=3500, # 2048
                 eos_token_id=recong_tokenizer.eos_token_id,
                 repetition_penalty=None,
-                use_cache=True
+                use_cache=True,
+                streamer=recong_streaner
                 )
         recong_input_token_len = recong_input_ids.shape[1]
         n_diff_input_output = (recong_input_ids != recong_output_ids[:, :recong_input_token_len]).sum().item()
         if n_diff_input_output > 0:
             print(f'[Warning] {n_diff_input_output} output_ids are not the same as the input_ids')
         recong_outputs = recong_tokenizer.batch_decode(recong_output_ids[:, recong_input_token_len:], skip_special_tokens=True)[0]
-        print(f'Recognition CDL is:\n{recong_outputs}')
+        # print(f'Recognition CDL is:\n{recong_outputs}')
         recong_outputs = recong_outputs.strip()
         if recong_outputs.endswith(recong_stop_str):
             recong_outputs = recong_outputs[:-len(recong_stop_str)]
@@ -131,7 +134,7 @@ def cascade_prediction(recong_tokenizer, recong_model, recong_image_processor, r
     input_ids = tokenizer_image_token(prompt, tokenizer, IMAGE_TOKEN_INDEX, return_tensors='pt').unsqueeze(0).cuda()
     image_tensor = image_processor.preprocess(image, return_tensors='pt')['pixel_values'][0]
     stop_str = conv.sep if conv.sep_style != SeparatorStyle.TWO else conv.sep2
-    
+    streamer = TextStreamer(tokenizer, skip_prompt=True, skip_special_tokens=True)
     with torch.inference_mode():
         output_ids = model.generate(
             input_ids,
@@ -145,7 +148,8 @@ def cascade_prediction(recong_tokenizer, recong_model, recong_image_processor, r
             max_new_tokens=3500, # 2048
             eos_token_id=tokenizer.eos_token_id,
             repetition_penalty=None,
-            use_cache=True
+            use_cache=True,
+            streamer=streamer
             )
     input_token_len = input_ids.shape[1]
     n_diff_input_output = (input_ids != output_ids[:, :input_token_len]).sum().item()
@@ -156,14 +160,14 @@ def cascade_prediction(recong_tokenizer, recong_model, recong_image_processor, r
     if outputs.endswith(stop_str):
         outputs = outputs[:-len(stop_str)]
     outputs = outputs.strip()
-    print(f"CotAns is:\n{outputs}")
+    # print(f"CotAns is:\n{outputs}")
     
             
             
-if __name__ == '__main__':
-    img_path = 'data/formalgeo7k/formalgeo7k_v2/diagrams/4927.png'
-    qs = 'As shown in the diagram, AE/AB=1/4, M is the midpoint of segment AC, BE is parallel to CP, EA is parallel to CP. Find the ratio of the length of line BC to the length of line CD.'
-    qa_mode = 'q_predcdl2cdl_ans'
+def main(args):
+    img_path = args.img_path
+    # qs = 'As shown in the diagram, AE/AB=1/4, M is the midpoint of segment AC, BE is parallel to CP, EA is parallel to CP. Find the ratio of the length of line BC to the length of line CD.'
+    qa_mode = args.qa_mode
     # 加载识别模型和推理模型
     
     # disable some warnings
@@ -172,9 +176,9 @@ if __name__ == '__main__':
     warnings.filterwarnings('ignore')
     # set device
     torch.set_default_device('cuda')  # or 'cuda'
-    recong_conv_mode = 'qwen-chat'
-    recong_tokenizer, recong_model, recong_image_processor, recong_context_len = load_pretrained_model(model_path='checkpoints/checkpoints-qwen2/bunny-lora-qwen2-qa-FormalGeoV2Aug10Times_calibrate_structure_only-sft4-add05/merged', 
-                                                                        vision_encoder_path='checkpoints/checkpoints-qwen2/bunny-lora-qwen2-qa-FormalGeoV2Aug10Times_calibrate_structure_only-sft4-add05/merged', 
+    recong_conv_mode = args.recong_chat_mode
+    recong_tokenizer, recong_model, recong_image_processor, recong_context_len = load_pretrained_model(model_path=args.recong_model_path, 
+                                                                        vision_encoder_path=args.recong_model_path, 
                                                                         model_base=None, 
                                                                         model_name='bunny-qwen2',
                                                                         model_type='qwen2',
@@ -182,15 +186,37 @@ if __name__ == '__main__':
                                                                         device='cuda')
 
 
-    conv_mode = 'yi-chat'
-    tokenizer, model, image_processor, context_len = load_pretrained_model(model_path='checkpoints/checkpoints-yi1.5/bunny-yi1.5-9B-Chat-FormalGeoCoT-VisionPretrained-sft2e-v12', 
-                                                                        vision_encoder_path='checkpoints/checkpoints-yi1.5/bunny-yi1.5-9B-Chat-FormalGeoCoT-VisionPretrained-sft2e-v12', 
+    conv_mode = args.reasoning_chat_mode
+    tokenizer, model, image_processor, context_len = load_pretrained_model(model_path=args.reasoning_model_path, 
+                                                                        vision_encoder_path=args.reasoning_model_path, 
                                                                         model_base=None, 
                                                                         model_name='bunny-yi1.5',
                                                                         model_type='yi1.5',
                                                                         device_map='auto',
                                                                         device='cuda')
     
+    while True:
+        try:
+            qs = input()
+        except EOFError:
+            qs = ""
+        if not qs:
+            print("exit...")
+            break
+        cascade_prediction(recong_tokenizer, recong_model, recong_image_processor, recong_conv_mode,
+                        tokenizer, model, image_processor, conv_mode, img_path, qs, qa_mode, crop_image=True, consCDL=args.consCDL, imgCDL=args.imgCDL, temperature=0, num_beams=1, top_p=None)
     
-    cascade_prediction(recong_tokenizer, recong_model, recong_image_processor, recong_conv_mode,
-                       tokenizer, model, image_processor, conv_mode, img_path, qs, qa_mode, crop_image=True, consCDL=None, imgCDL=None, temperature=0, num_beams=1, top_p=None)
+
+if __name__ == '__main__':
+    from argparse import ArgumentParser
+    parser = ArgumentParser()
+    parser.add_argument('--recong-model-path', type=str, default='checkpoints/checkpoints-qwen2/bunny-lora-qwen2-qa-FormalGeoV2Aug10Times_calibrate_structure_only-sft4-add05/merged')
+    parser.add_argument('--recong-chat-mode', type=str, default='qwen-chat')
+    parser.add_argument('--reasoning-model-path', type=str, default='checkpoints/checkpoints-yi1.5/bunny-yi1.5-9B-Chat-FormalGeoCoT-VisionPretrained-sft1e-v20')
+    parser.add_argument('--reasoning-chat-mode', type=str, default='yi-chat')
+    parser.add_argument('--img-path', type=str, default='data_backup/formalgeo7k/formalgeo7k_v2/diagrams/4927.png')
+    parser.add_argument('--qa-mode', type=str, default='q_predcdl2cdl_ans') # q2ans, q2cdl_ans, q_cdl2ans, q_predcdl2ans, q_predcdl2cdl_ans
+    parser.add_argument('--consCDL', type=str, default=None)
+    parser.add_argument('--imgCDL', type=str, default=None)
+    args = parser.parse_args()
+    main(args)
