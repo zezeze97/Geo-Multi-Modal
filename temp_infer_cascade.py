@@ -60,35 +60,35 @@ torch.set_default_device(device)
 
 # create model
 formalization_model = AutoModelForCausalLM.from_pretrained(
-    # 'checkpoints/publish/GeoFormalizer',
-    'NaughtyDog97/GeoFormalizer',
+    'checkpoints/publish/GeoFormalizer',
+    # 'NaughtyDog97/GeoFormalizer',
     torch_dtype=torch.float16, # float32 for cpu
     device_map='auto',
     trust_remote_code=True)
 
 formalization_tokenizer = AutoTokenizer.from_pretrained(
-    # 'checkpoints/publish/GeoFormalizer',
-    'NaughtyDog97/GeoFormalizer',
+    'checkpoints/publish/GeoFormalizer',
+    # 'NaughtyDog97/GeoFormalizer',
     use_fast=True,
     padding_side="right",
     trust_remote_code=True)
 
 
 reason_model = AutoModelForCausalLM.from_pretrained(
-    # 'checkpoints/publish/GeoReasoner',
-    'NaughtyDog97/FormalEnhencedGPS-34B',
+    'checkpoints/publish/FormalEnhencedGPS-9B',
+    # 'NaughtyDog97/FormalEnhencedGPS-34B',
     torch_dtype=torch.float16, # float32 for cpu
     device_map='auto',
     trust_remote_code=True)
 reason_tokenizer = AutoTokenizer.from_pretrained(
-    # 'checkpoints/publish/GeoReasoner',
-    'NaughtyDog97/FormalEnhencedGPS-34B',
+    'checkpoints/publish/FormalEnhencedGPS-9B',
+    # 'NaughtyDog97/FormalEnhencedGPS-34B',
     use_fast=False,
     trust_remote_code=True)
 
 
 
-img_path = 'data/formalgeo7k/formalgeo7k_v2/diagrams/4927.png'
+img_path = 'data_backup/formalgeo7k/formalgeo7k_v2/diagrams/4927.png'
 image = Image.open(img_path).convert('RGB')
 
 

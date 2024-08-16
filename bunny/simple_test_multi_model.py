@@ -85,6 +85,7 @@ def cascade_prediction(recong_tokenizer, recong_model, recong_image_processor, r
         recong_stop_str = recong_conv.sep if recong_conv.sep_style != SeparatorStyle.TWO else recong_conv.sep2
         recong_streaner = TextStreamer(recong_tokenizer, skip_prompt=True, skip_special_tokens=True)
         # 进行结构识别
+        print('Start Structrual Recognition....')
         with torch.inference_mode():
             recong_output_ids = recong_model.generate(
                 recong_input_ids,
@@ -135,6 +136,7 @@ def cascade_prediction(recong_tokenizer, recong_model, recong_image_processor, r
     image_tensor = image_processor.preprocess(image, return_tensors='pt')['pixel_values'][0]
     stop_str = conv.sep if conv.sep_style != SeparatorStyle.TWO else conv.sep2
     streamer = TextStreamer(tokenizer, skip_prompt=True, skip_special_tokens=True)
+    print('Start Reasoning...')
     with torch.inference_mode():
         output_ids = model.generate(
             input_ids,
@@ -197,6 +199,7 @@ def main(args):
     
     while True:
         try:
+            print('Please enter the question.')
             qs = input()
         except EOFError:
             qs = ""
