@@ -11,7 +11,7 @@ export HF_ENDPOINT=https://hf-mirror.com
 
 
 # huggingface-cli download --resume-download Qwen/Qwen2-7B-Instruct
-huggingface-cli download --resume-download NaughtyDog97/FormalEnhencedGPS-34B
+huggingface-cli download --resume-download NaughtyDog97/DFE-GPS-9B
 # huggingface-cli download --resume-download 01-ai/Yi-1.5-34B-Chat
 # huggingface-cli download --resume-download 01-ai/Yi-1.5-9B-Chat-16K
 # huggingface-cli download --resume-download 01-ai/Yi-1.5-34B-Chat-16K

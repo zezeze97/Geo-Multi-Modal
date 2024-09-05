@@ -16,7 +16,7 @@ tokenizer, model_1, image_processor, context_len = load_pretrained_model(model_p
 
 
 
-'''
+
 tokenizer, model_2, image_processor, context_len = load_pretrained_model(model_path='checkpoints/checkpoints-qwen2/bunny-lora-qwen2-qa-FormalGeoV2Aug10Times_calibrate_structure_only-sft4/merged', 
                                                                        vision_encoder_path='checkpoints/checkpoints-qwen2/bunny-lora-qwen2-qa-FormalGeoV2Aug10Times_calibrate_structure_only-sft4/merged', 
                                                                        model_base=None, 
@@ -32,7 +32,7 @@ model_2 = transformers.AutoModelForCausalLM.from_pretrained(
     torch_dtype=torch.float16, # float32 for cpu
     device_map=None,
     trust_remote_code=True).cpu()
-
+'''
     
 # vision_tower_1 = {k: v for k, v in model_1.get_vision_tower().named_parameters()}
 # vision_model_2 ={k: v for k, v in model_2.get_vision_tower().named_parameters()}
