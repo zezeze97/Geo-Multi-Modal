@@ -270,7 +270,7 @@ if __name__ == "__main__":
     parser.add_argument("--no-register", action="store_true")
     parser.add_argument("--load-8bit", action="store_true")
     parser.add_argument("--load-4bit", action="store_true")
-    parser.add_argument("--crop_image", action='store_true')
+    parser.add_argument("--crop-image", action='store_true')
     args = parser.parse_args()
     logger.info(f"args: {args}")
 

@@ -161,22 +161,26 @@ def main(args):
     # set device
     torch.set_default_device('cuda')  # or 'cuda'
 
-    formalization_model = AutoModelForCausalLM.from_pretrained('NaughtyDog97/DiagramFormalizer',
+    formalization_model = AutoModelForCausalLM.from_pretrained(# 'NaughtyDog97/DiagramFormalizer',
+                                                               'checkpoints/publish/GeoFormalizer',
                                                                 torch_dtype=torch.float16, 
                                                                 device_map='auto',
                                                                 trust_remote_code=True)
-    formalization_tokenizer = AutoTokenizer.from_pretrained('NaughtyDog97/DiagramFormalizer',
+    formalization_tokenizer = AutoTokenizer.from_pretrained(# 'NaughtyDog97/DiagramFormalizer',
+                                                            'checkpoints/publish/GeoFormalizer',
                                                             use_fast=True,
                                                             padding_side="right",
                                                             trust_remote_code=True)
     
 
 
-    reasoning_model = AutoModelForCausalLM.from_pretrained('NaughtyDog97/DFE-GPS-9B', # or 34B
+    reasoning_model = AutoModelForCausalLM.from_pretrained(# 'NaughtyDog97/DFE-GPS-9B', # or 34B
+                                                           'checkpoints/publish/FormalEnhencedGPS-34B',
                                                             torch_dtype=torch.float16, 
                                                             device_map='auto',
                                                             trust_remote_code=True)
-    reasoning_tokenizer = AutoTokenizer.from_pretrained('NaughtyDog97/DFE-GPS-9B', # or 34B
+    reasoning_tokenizer = AutoTokenizer.from_pretrained(# 'NaughtyDog97/DFE-GPS-9B', # or 34B
+                                                        'checkpoints/publish/FormalEnhencedGPS-34B',
                                                         use_fast=False,
                                                         trust_remote_code=True)
     

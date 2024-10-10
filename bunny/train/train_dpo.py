@@ -20,10 +20,11 @@ import glob
 from bunny.trl.trl import DPOConfig
 
 local_rank = None
+global_rank = None
 
 
 def rank0_print(*args):
-    if local_rank == 0:
+    if global_rank == 0:
         print(*args)
 
 
@@ -39,7 +40,6 @@ class ModelArguments:
     pretrain_mm_mlp_adapter: Optional[str] = field(default=None)
     mm_projector_type: Optional[str] = field(default='mlp2x_gelu')
     use_s2: bool = field(default=False)
-
 
 @dataclass
 class TrainingArguments(DPOConfig):
@@ -80,6 +80,7 @@ class TrainingArguments(DPOConfig):
     max_length: int
     max_prompt_length: int
     max_target_length: int
+    force_tune_embedding: bool = False
     
     
     
@@ -195,6 +196,7 @@ def safe_save_model_for_hf_trainer(trainer: transformers.Trainer,
 
 def train():
     global local_rank
+    global global_rank
     # debug?
     # torch.set_num_threads(1)
 
@@ -204,6 +206,10 @@ def train():
     # debug
     training_args.gradient_checkpointing_kwargs = {"use_reentrant": False}
     local_rank = training_args.local_rank
+    print(f'local rank is: {local_rank}')
+    # 获取 global rank
+    global_rank = dist.get_rank()
+    print(f'global rank is {global_rank}')
     compute_dtype = (torch.float16 if training_args.fp16 else (torch.bfloat16 if training_args.bf16 else torch.float32))
 
     bnb_model_from_pretrained_args = {}
@@ -281,14 +287,6 @@ def train():
             trust_remote_code=True
         )
     elif model_args.model_type == 'qwen2':
-        '''
-        tokenizer = Qwen2Tokenizer(vocab_file='data/caption_data_syth_v25/vocab.json',
-                                   merges_file='data/caption_data_syth_v25/merges.txt',
-                                   unk_token=None,
-                                   model_max_length=training_args.model_max_length)
-        tokenizer.add_tokens(['\t'])
-        
-        '''
         tokenizer = transformers.AutoTokenizer.from_pretrained(
             model_args.model_name_or_path,
             cache_dir=training_args.cache_dir,
@@ -406,31 +404,6 @@ def train():
             **bnb_model_from_pretrained_args
         ) 
     elif model_args.model_type == 'qwen2':
-        '''
-        config = BunnyQwen2Config(attention_dropout=0.0,
-                            hidden_act='silu',
-                            hidden_size=1024,
-                            initializer_range=0.02,
-                            intermediate_size=2816,
-                            max_position_embeddings=training_args.model_max_length,
-                            max_window_layers=21,
-                            model_type='qwen2',
-                            num_attention_heads=8,
-                            num_hidden_layers=3, # 24
-                            num_key_value_heads=8,
-                            rms_norm_eps=1e-6,
-                            rope_theta=1000000.0,
-                            sliding_window=training_args.model_max_length,
-                            tie_word_embeddings= True,
-                            torch_dtype = torch.bfloat16,
-                            use_cache = True,
-                            use_sliding_window= False,
-                            vocab_size=47,
-                            bos_token_id=tokenizer.bos_token_id,
-                            eos_token_id=tokenizer.eos_token_id,
-                            )
-        model = BunnyQwen2ForCausalLM._from_config(config)
-        '''
         model = BunnyQwen2ForCausalLM.from_pretrained(model_args.model_name_or_path,
                                                         cache_dir=training_args.cache_dir,
                                                         bos_token_id=tokenizer.bos_token_id,
@@ -450,9 +423,9 @@ def train():
     else:
         raise ValueError(f"Unknown Model Type {model_args.model_type}")
     
-    ref_model.eval()
 
     model.config.use_cache = False
+    ref_model.config.use_cache = False
 
     if model_args.freeze_backbone:
         model.model.requires_grad_(False)
@@ -496,7 +469,7 @@ def train():
         conversation_lib.default_conversation = conversation_lib.conv_templates["default"]
         
     # 准备vision encoder的ckpt， 针对zero3 debug， 只能初始化一次
-    if model_args.vision_tower_pretrained_local_path is not None:
+    if model_args.vision_tower_pretrained_local_path is not None and global_rank == 0:
         ckpt_path = model_args.vision_tower_pretrained_local_path
         state_dict = {}
         # find safetensors
@@ -518,26 +491,27 @@ def train():
                         new_k = k.replace('base_model.model.model.vision_tower.vision_tower.', '')
                         state_dict[new_k] = weights
         # save state_dict to temp dir
-        if local_rank == 0:
-            temp_dir = os.path.join(ckpt_path, 'vision_encoder_ckpt')
-            if not os.path.exists(temp_dir):
-                os.makedirs(temp_dir)
-            torch.save(state_dict, os.path.join(temp_dir, 'pytorch_model.bin'))
-            config = transformers.AutoConfig.from_pretrained(model_args.vision_tower)
-            config.save_pretrained(temp_dir)
-        # 确保所有节点都等待主节点完成文件保存
-        dist.barrier()
+        
+        temp_dir = os.path.join(ckpt_path, 'vision_encoder_ckpt')
+        if not os.path.exists(temp_dir):
+            os.makedirs(temp_dir)
+        torch.save(state_dict, os.path.join(temp_dir, 'pytorch_model.bin'))
+        config = transformers.AutoConfig.from_pretrained(model_args.vision_tower)
+        config.save_pretrained(temp_dir)
+    # 确保所有节点都等待主节点完成文件保存
+    dist.barrier()
+    if model_args.vision_tower_pretrained_local_path is not None:
+        # 更改vision encoder的ckpt path
+        ckpt_path = model_args.vision_tower_pretrained_local_path
         model_args.vision_tower_pretrained_local_path = os.path.join(ckpt_path, 'vision_encoder_ckpt')
     # 加载模型
     model.get_model().initialize_vision_modules(model_args=model_args)
     ref_model.get_model().initialize_vision_modules(model_args=model_args)
     
     # 删除临时vision ckpt
-    if model_args.vision_tower_pretrained_local_path is not None:
-        if local_rank == 0:
-            temp_dir = os.path.join(ckpt_path, 'vision_encoder_ckpt')
-            shutil.rmtree(temp_dir)
-        dist.barrier()
+    if model_args.vision_tower_pretrained_local_path is not None and global_rank == 0:
+        shutil.rmtree(model_args.vision_tower_pretrained_local_path)
+    dist.barrier()
 
     vision_tower = model.get_vision_tower()
     vision_tower.to(dtype=torch.bfloat16 if training_args.bf16 else torch.float16, device=training_args.device)
@@ -580,6 +554,9 @@ def train():
         for p in model.get_model().mm_projector.parameters():
             p.requires_grad = True
         
+    if training_args.force_tune_embedding:
+        model.get_model().embed_tokens.requires_grad_(True)
+        
         
     if training_args.bits in [4, 8]:
         model.get_model().mm_projector.to(dtype=compute_dtype, device=training_args.device)
@@ -613,8 +590,7 @@ def train():
     # 遍历模型的所有参数
     for name, param in model.named_parameters():
         # 只计算可训练的参数
-        if local_rank == 0:
-            print(f'parame name is {name}, grad statu is {param.requires_grad}, param_num is {param.numel()}')
+        rank0_print(f'parame name is {name}, grad statu is {param.requires_grad}, param_num is {param.numel()}')
         if param.requires_grad:
             if 'vision' in name:
                 trainable_vision_params += param.numel()
@@ -625,8 +601,11 @@ def train():
             # 使用numel方法获取参数中的元素数量，并累加到总数中
             total_params += param.numel()
 
-    print(f"Total trainable parameters: {total_params / 1_000_000:.3f}M, Vision: {trainable_vision_params / 1_000_000:.3f}M, Adapter: {trainable_mmadapter_params / 1_000_000:.3f}M, LLM: {trainable_llm_params / 1_000_000:.3f}M")
-
+    rank0_print(f"Total trainable parameters: {total_params / 1_000_000:.3f}M, Vision: {trainable_vision_params / 1_000_000:.3f}M, Adapter: {trainable_mmadapter_params / 1_000_000:.3f}M, LLM: {trainable_llm_params / 1_000_000:.3f}M")
+    # 冻结ref model的所有参数
+    for p in ref_model.parameters():
+        p.requires_grad = False
+    ref_model.eval()
     
     trainer = BunnyTrainerDPO(model=model,
                               ref_model=ref_model,

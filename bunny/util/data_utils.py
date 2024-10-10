@@ -954,6 +954,7 @@ class LazyDPODataset(Dataset):
         data_dict = self.list_data_dict[i]
         if 'image' in data_dict:
             image_file = data_dict['image']
+            image_file = image_file.split('/')[-1] # only use for VL-FeedBack
             image_folder = self.data_args.image_folder
             processor = self.data_args.image_processor
             image = Image.open(os.path.join(image_folder, image_file)).convert('RGB')

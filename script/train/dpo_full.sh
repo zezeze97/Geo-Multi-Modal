@@ -17,11 +17,11 @@ OUTPUT_DIR=bunny-$MODEL_TYPE9B-dpo
 mkdir -p checkpoints/checkpoints-$MODEL_TYPE/$OUTPUT_DIR
 deepspeed --include=localhost:0,1,2,3 --master_port 25679 bunny/train/train_dpo.py \
     --deepspeed ./script/deepspeed/zero3.json \
-    --model_name_or_path 01-ai/Yi-1.5-9B \
+    --model_name_or_path 01-ai/Yi-1.5-9B-Chat \
     --model_type $MODEL_TYPE \
     --version yi \
-    --data_path ./data/VLFeedBack.json \
-    --image_folder None \
+    --data_path data_backup/vl_dpo_data/VLFeedBack.json \
+    --image_folder data_backup/vl_dpo_data/merged_images \
     --vision_tower google/siglip-so400m-patch14-384 \
     --freeze_vision_tower True \
     --tune_vision_tower False \
@@ -33,7 +33,7 @@ deepspeed --include=localhost:0,1,2,3 --master_port 25679 bunny/train/train_dpo.
     --num_train_epochs 2 \
     --per_device_train_batch_size 2 \
     --per_device_eval_batch_size 1 \
-    --gradient_accumulation_steps 16 \
+    --gradient_accumulation_steps 2 \
     --evaluation_strategy "no" \
     --save_strategy "steps" \
     --save_steps 500 \
@@ -44,10 +44,10 @@ deepspeed --include=localhost:0,1,2,3 --master_port 25679 bunny/train/train_dpo.
     --lr_scheduler_type "cosine" \
     --logging_steps 1 \
     --tf32 True \
-    --model_max_length 2048 \
-    --max_length 2048 \
-    --max_prompt_length 1024 \
-    --max_target_length 1024 \
+    --model_max_length 4096 \
+    --max_length 4096 \
+    --max_prompt_length 2048 \
+    --max_target_length 2048 \
     --gradient_checkpointing True \
     --dataloader_num_workers 4 \
     --lazy_preprocess True \

@@ -1098,6 +1098,7 @@ class DPOTrainer(Trainer):
             logits = logits[:, :-1, :]
         loss_mask = labels != label_pad_token_id
         # print(f'loss_mask is {loss_mask}')
+        # print(f'loss_mask shape is {loss_mask.shape}')
 
         # dummy token; we'll ignore the losses on these tokens later
         labels[labels == label_pad_token_id] = 0
@@ -1148,6 +1149,7 @@ class DPOTrainer(Trainer):
         # print(f'all_logits shape is {all_logits.shape}')
         # print(f'all_logits is {all_logits}')
         # print(f'modified_labels shape is {modified_labels.shape}')
+        # print(f'modified_labels is {modified_labels}')
         all_logps = self.get_batch_logps(
             all_logits,
             modified_labels,
